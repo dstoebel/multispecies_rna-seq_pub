@@ -1,0 +1,10 @@
+Number of islands per node in focal clade: 
+  Node                 | Before merge | After merge
+  ----                 | ------------ | -----------
+  s2                   | 321          | 147
+  s3                   | 339          | 132
+  s4                   | 134          | 55
+  S_typhimurium_14028s | 1367         | 257
+  E_coli_K12           | 1069         | 269
+  C_rodentium_ICC168   | 1504         | 249
+  E_cloacae_ATCC13047  | 1941         | 258

@@ -1,0 +1,888 @@
+---
+title: "Cold temp phenotypes"
+author: "Dan Stoebel"
+date: "`r Sys.Date()`"
+output: html_document
+---
+This file documents analysis to try to understand the phenotypes that might be implicated by the RpoS data set. This will include both GO analysis and analysis of candidate genes.
+
+# Do GO analysis on this data set
+
+In order to try to do a GO enrichment analysis, I ran all of the genomes through the [eggNOG-mapper](http://eggnog-mapper.embl.de/) (https://academic.oup.com/mbe/article/38/12/5825/6379734) which uses BLAST and other tools to create GO terms for a genome.
+
+I want to:
+
+- read in the results
+- split the query column to speperate the locus_tag from the part that contains the species
+- seperate each part of the giant tibble into its own tibble
+- end up with a single tibble for each species wich only has the locus_tag and the corresponding GOs.
+
+
+```{r}
+library(tidyverse)
+library(furrr)
+library(DESeq2)
+library(readxl)
+library(topGO)
+library(patchwork)
+library(ComplexUpset)
+theme_set(theme_classic())
+
+#Set number of workers for furrr computations
+plan(multisession, workers = 2)
+```
+
+
+
+```{r message=FALSE}
+if(!file.exists("basic_analysis.RData")) {
+  source("basic_analysis.R") 
+  tools::md5sum("basic_analysis.RData")
+  }
+
+if (tools::md5sum("basic_analysis.RData") == "b38dbde28a5928d494dd1b58bf737c01"){
+  load("basic_analysis.RData")
+  print("basic_analysis.RData loaded")
+} else{
+  source("basic_analysis.R")
+  print("basic_analysis.R run")
+  tools::md5sum("basic_analysis.RData")
+}
+```
+The most recent version of the above .R file must be run before running the analysis in this file.
+
+
+
+```{r}
+eggnog_results <-
+  read_excel("eggNOG-mapper/out.emapper.annotations.xlsx", range = "A3:U28120") |>
+  separate_wider_delim(
+    cols = query,
+    delim = "-",
+    names = c("species", "locus_tag")
+  )
+
+species_to_study <-
+  c(
+    "E_cloacae_ATCC13047",
+    "S_typhimurium_14028s",
+    "C_rodentium_ICC168",
+    "E_coli_K12",
+    "S_marcescens_Db11",
+    "K_pneumoniae_KPNIH1"
+  ) |> 
+  sort()
+```
+
+### Format the eggnog results for topGO
+
+```{r}
+species_GO_terms <- species_to_study |> 
+  purrr::map(\(x) filter(eggnog_results, str_detect(species, x))) |> 
+  purrr::map(\(x) dplyr::select(x, locus_tag, GOs)) 
+
+names(species_GO_terms) <- species_to_study
+
+dir.create("outputs/GO")
+
+species_GO_terms |>
+  purrr::imap(\(x, idx) write_tsv(x, paste0("outputs/GO/", idx, "_GO_terms_for_topGO.tsv"), col_names = FALSE))
+
+# species_kegg <- species_to_study |> 
+#   purrr::map(\(x) filter(eggnog_results, str_detect(species, x))) |> 
+#   purrr::map(\(x) dplyr::select(x, locus_tag, KEGG_ko))
+# names(species_kegg) <- species_to_study
+```
+
+### Read in the GO mappings for topGO
+```{r}
+all_species_gene2GO <- list.files(path = "outputs/GO", full.names = TRUE, pattern = "_GO_terms_for_topGO.tsv") |>
+  purrr::map(\(x) readMappings(x))
+
+names(all_species_gene2GO) <- species_to_study
+```
+
+### Flatten out all_species_gene2GO 
+
+```{r}
+all_species_gene2GO_flat <- list.files(path = "outputs/GO", full.names = TRUE, pattern = "_GO_terms_for_topGO.tsv") |> 
+  read_tsv(col_names = c("locus_tag", "GO_terms"), id = "species") |> 
+  mutate(species = str_extract(species, "outputs/GO/(.+)_GO_terms_for_topGO.tsv", group = 1))
+
+#The code below returns messed up locus tags. I think that the unlist function was changing the length of some locus_tags 
+
+# all_species_gene2GO |> 
+#   unlist(recursive = FALSE) |> 
+#   enframe() |> 
+#   separate_wider_delim(name, delim = ".", names = c("species", "locus_tag")) 
+#   dplyr::rename(GO_terms = value)
+
+
+```
+
+
+
+### Read in significance data for topGO
+
+```{r}
+all_species_wt_sig <-
+  list.files(path = "outputs/sig_tables/",
+             pattern = "wt_significance_of_temp",
+             full.names = TRUE,
+  ) |>
+  purrr::map(\(x) read_tsv(x, show_col_types = FALSE))
+
+names(all_species_wt_sig) <- species_to_study
+
+sig_genes_each_species <- all_species_wt_sig |>
+  purrr::map(\(x) dplyr::select(x, locus_tag, padj)) |>
+  purrr::map(\(x) set_names(pull(x, padj), nm = pull(x, locus_tag)))
+
+
+sig_genes_list <- all_species_wt_sig |>
+  purrr::map(\(x) dplyr::filter(x, significant)) |>
+  purrr::map(\(x) dplyr::pull(x, locus_tag))
+
+all_genes_list <- all_species_wt_sig |>
+  purrr::map(\(x) dplyr::pull(x, locus_tag)) 
+```
+
+
+
+
+
+```{r}
+make_topGO_object <- function(x) {
+  genes_sig_or_not <-
+    factor(as.integer(all_genes_list[[x]] %in% sig_genes_list[[x]]))
+  
+  names(genes_sig_or_not) <- all_genes_list[[x]]
+  
+  geneID2GO <- all_species_gene2GO[[x]]
+  
+  initialGOdata <- new(
+    "topGOdata",
+    ontology = "BP",
+    allGenes = genes_sig_or_not,
+    nodeSize = 5,
+    gene2GO  = geneID2GO,
+    annot    = annFUN.gene2GO
+  )
+}
+
+run_enrichment <- function(x, alg = "weight01", stat = "fisher") {
+  test.stat <- runTest(object = x,
+                       algorithm = alg,
+                       statistic = stat)
+  
+  GenTable(x, pval = test.stat, topNodes = 50)
+  
+}
+
+```
+
+
+## Generate the GO enrichment table for each species
+```{r}
+
+topGO_objects <- species_to_study |>
+  purrr::set_names() |>
+  future_map(make_topGO_object) 
+
+GO_tables <- topGO_objects |> 
+  future_map(run_enrichment)
+
+filtered_GO_tables <- GO_tables |> 
+  purrr::map(\(x) mutate(x, pval = as.numeric(pval))) |> 
+  purrr::map(\(x) filter(x, pval < 0.05)) |> 
+  purrr::imap(\(x, idx) write_tsv(x, paste0("outputs/GO/enriched_GO_terms_in_", idx,".tsv")))
+```
+
+
+Figure out if there are any commonalities across the enriched genes.
+The tibble `enriched_GO_overview` lists all of the GO terms that are enriched in at least one genome.
+```{r}
+
+  
+ enriched_GO_overview <- filtered_GO_tables |> 
+  purrr::map(\(x) dplyr::select(x, GO.ID, term = Term)) |> 
+  imap(\(x, idx) tibble(as.data.frame(x), species = idx)) |> 
+  bind_rows() |> 
+  mutate(present = 1) |> 
+  pivot_wider(names_from = species, values_from = present, values_fill = 0) |> 
+  rowwise() |> 
+  mutate(number_of_genomes = sum(across(C_rodentium_ICC168:S_typhimurium_14028s))) |> 
+  ungroup() |> 
+  dplyr::select(GO.ID, term, number_of_genomes, everything()) |> 
+  arrange(desc(number_of_genomes))
+
+#Format and write the table to file for easy of browsing by other users
+
+enriched_GO_overview |>
+  mutate(across(4:9, as.logical)) |> 
+  dplyr::select(
+    `GO.ID`,
+    term,
+    `number of genomes enriched` = number_of_genomes,
+    `E. coli` = "E_coli_K12",
+    `S. enterica` = "S_typhimurium_14028s",
+    `C. rodentium` = "C_rodentium_ICC168",
+    `E. cloacae` = "E_cloacae_ATCC13047",
+    `K. pneumoniae` = "K_pneumoniae_KPNIH1",
+    `S. marcescens` = "S_marcescens_Db11"
+  ) |> 
+  write_tsv(file = "outputs/GO/enriched_GO_overview.tsv")
+
+enriched_GO_overview |> 
+  group_by(number_of_genomes >=2) |> 
+  tally()
+
+```
+What I see is that most GO terms are unique to each species. (An upset plot would help here.) 10 of 151 terms are common in at least 3 of the 6 genomes, and only 44 of 151 were common to 2 of the 6. Leaving 107 terms that were enriched in only a single genome. I'd like to better understand what the reason for this. Is it that these genes are simply not present in all of the genomes, so they can't be upregulated in parallel? Or are they present but not DE?
+
+### Create an upset plot to look at how GO terms are shared
+```{r}
+
+
+GO_for_upset <- enriched_GO_overview |> 
+  dplyr::select(C_rodentium_ICC168:S_typhimurium_14028s) |> 
+  mutate(across(everything(), as.logical))
+
+
+upset(
+  GO_for_upset,
+  rev(names(species_labels)),
+  set_sizes = FALSE ,
+  sort_sets = FALSE,
+  base_annotations=list(
+        'Number of enriched GO terms'=intersection_size(text = aes(size = 2.5))
+    ),
+  labeller = format_species_names,
+  themes = upset_default_themes(
+    text = element_text(size = 10)
+)
+)
+
+ggsave(filename = "outputs/GO_upset.png", width = 8, height= 5)
+```
+
+
+
+
+
+
+## Plot all of the GO terms that are enriched in at least one genome
+
+To make these plots, I need:
+- The information about what GO terms are enriched -> This is in `enriched_GO_overview`
+
+Then for each GO term:
+- The genes that are associated with that GO term in each genome -> This is is in the `topGOdata` objects and can be accessed in using the `genesInTerm()` function.
+
+- The DEseq2 output for each gene -> This is in `all_wt_sig_flat` which is created in the `basic_analysis.R` script.
+
+With those pieces of information in hand, I can do the plotting. I have written a function to pull the information together and plot it.
+
+### A function for plotting
+The function `plot_genes_from_GO` takes a GO term and its name and makes a violin plot of the log2 fold-change of each gene, grouped by species.
+```{r}
+plot_genes_from_GO <- function(GO_term_to_plot, title) {
+  genes_to_plot <- species_to_study |>
+    set_names() |>
+    purrr::map(\(x) genesInTerm(topGO_objects[[x]], whichGO = GO_term_to_plot)) |>
+    bind_rows(.id = "species") |>
+  dplyr::rename("locus_tag" = all_of(GO_term_to_plot))
+  
+  data_to_plot <- genes_to_plot |> 
+  left_join(all_wt_sig_flat, by = c("locus_tag", "species")) |>
+    mutate(
+      species = factor(species,
+                       levels = names(species_labels)),
+      species = fct_relabel(species, format_species_names),
+      significant = replace(significant, is.na(significant), FALSE)
+    ) |>
+    filter(!is.na(log2FoldChange))
+  
+  data_to_plot |> 
+    ggplot(aes(x = species, y = log2FoldChange)) +
+    geom_violin() +
+    geom_jitter(aes(color = significant), width = 0.05, alpha = 0.5) +
+    theme(axis.text.x = element_text(angle = 90)) +
+    geom_hline(yintercept = 0) +
+    ggtitle(paste(GO_term_to_plot, gsub("_", " ", title),sep = "\n")) +
+    labs(y = "log2 fold change\n(15°C/37°C)") + 
+    theme_classic() +
+    theme(axis.text.x = element_text(face="italic")) +
+    scale_color_brewer(palette = "Dark2") 
+}
+
+
+```
+
+### A function for plotting a custom set of genes
+
+```{r}
+plot_gene_from_custom_set <- function(locus_family_of_interest, title = " ") {
+    all_wt_sig_flat |>
+      filter(locus_family %in% locus_family_of_interest) |>
+      mutate(
+        species = factor(
+          species,
+          levels = c(
+            "E_coli_K12",
+            "S_typhimurium_14028s",
+            "C_rodentium_ICC168",
+            "E_cloacae_ATCC13047",
+            "K_pneumoniae_KPNIH1",
+            "S_marcescens_Db11"
+          )
+        ),
+        species = fct_recode(
+          species,
+          `E. coli` = "E_coli_K12",
+          `S. typhimurium` = "S_typhimurium_14028s",
+          `C. rodentium` = "C_rodentium_ICC168",
+          `E. cloacae` = "E_cloacae_ATCC13047",
+          `K. pneumoniae` = "K_pneumoniae_KPNIH1",
+          `S. marcescens` = "S_marcescens_Db11"
+          
+        ),
+        significant = replace(significant, is.na(significant), FALSE)
+      ) |>
+      ggplot(aes(x = species, y = log2FoldChange)) +
+      geom_violin() +
+      geom_jitter(aes(color = significant), width = 0.05, alpha = 0.5) +
+      theme(axis.text.x = element_text(angle = 90)) +
+      geom_hline(yintercept = 0) +
+      ggtitle(title) +
+      labs(y = "log2 fold change (15°C/37°C)") +
+    theme_classic() +
+      theme(axis.text.x = element_text(face = "italic")) +
+      scale_color_brewer(palette = "Dark2")
+  }
+
+```
+
+
+
+### A function for inspecting information about genes associated with a GO term.
+
+The function `get_genes_from_GO` returns the genes and associated data from the significance testing for inspection. 
+
+```{r}
+# The function genesInTerm() from topGO does this.
+# I wrote this function before I realized it.
+# In the future, use that function.
+
+get_genes_from_GO <- function(GO_term_to_inspect) {
+  genes_to_inspect <- species_to_study |>
+    set_names() |>
+    purrr::map(\(x) genesInTerm(topGO_objects[[x]], whichGO = GO_term_to_inspect)) |>
+    bind_rows(.id = "species") |>
+    dplyr::rename("locus_tag" = all_of(GO_term_to_inspect))
+
+
+  genes_to_inspect |>
+    left_join(all_wt_sig_flat, by = c("locus_tag", "species")) |>
+    mutate(
+      species = factor(species,
+                       levels = names(species_labels)),
+      species = fct_relabel(species, format_species_names)
+    ) |>
+  filter(!is.na(log2FoldChange),!is.na(significant)) |>
+    dplyr::select(species, locus_tag, gene, everything())
+}
+```
+
+### A function for finding the locus family of an ecoli gene of interest
+
+```{r}
+get_locus_family_from_ecoli_name <- function(gene_names) {
+  geneinfo_with_locus_fam_no_dups |>
+    filter(species == "E_coli_K12",
+           gene %in% gene_names) |>
+    pull(locus_family)
+}
+
+```
+
+
+
+### Creating a plot for each GO term enriched in at least one species
+
+With this all done, I can create the violin plots of log2 fold change for every GO term that was enriched in at least one genome (as indicated in `enriched_GO_overview`). I can then go and investigate these plots to look for the interesting ones.
+```{r}
+dir.create("outputs/enriched_plots")
+
+future_map2(
+  .x = enriched_GO_overview$GO.ID,
+  .y = enriched_GO_overview$term,
+  \(x, y) plot_genes_from_GO(GO_term_to_plot = as.character(x), title = as.character(y)) |> 
+    ggsave(filename = paste0("outputs/enriched_plots/", y , ".pdf"), width = 10, height = 5)
+)
+
+qpdf::pdf_combine(
+  input =
+    list.files(
+      path = "./outputs/enriched_plots",
+      full.names = TRUE,
+      pattern = ".pdf"
+    ),
+  output = "outputs/all_enriched_plots.pdf"
+)
+
+unlink("outputs/enriched_plots", recursive = TRUE)
+```
+
+# Observations on terms that are enriched in at least 3 genoems.
+
+Some of the GO terms that strike me as interesting
+
+GO:0009239	enterobactin biosynthetic process
+GO:0042930	enterobactin transport
+GO:0006101	citrate metabolic process
+GO:0006099	tricarboxylic acid cycle
+GO:0006546	glycine catabolic process
+GO:0051641	cellular localization
+GO:0044011	single-species biofilm formation on inan...
+GO:0006979	response to oxidative stress
+GO:0016999	antibiotic metabolic process
+GO:0009312	oligosaccharide biosynthetic process
+
+## Stuff related to iron
+
+### Plot GO terms related to iron that are enriched in at least two species
+
+```{r}
+go_0009239 <- plot_genes_from_GO(GO_term_to_plot = "GO:0009239", title = "enterobactin biosynthetic process")
+
+
+go_0042930 <- plot_genes_from_GO(GO_term_to_plot = "GO:0042930", title = "enterobactin transport")
+
+go_0097428 <- plot_genes_from_GO("GO:0097428", title = "iron sulfer cluster transfer")
+
+go_0016226 <- plot_genes_from_GO(GO_term_to_plot = "GO:0016226", title = "iron-sulfur cluster assembly")
+
+```
+I don't want to plot all of these in a single plot- some GO terms need to be removed. I'm going to go with Enterobactin synthesis and transport, and FeS cluster assembly and transfer.
+
+FeS cluster tranfer is up in the cold, perhaps consistent with cells having more iron.
+
+
+### Regulators of iron 
+Its interesting to look at these genes in the light of the activity of the regulator *fur*, which is a negative regulator of some of these genes E. coli. 
+
+```{r}
+fur <- plot_wt_gene(ecoli_gene_name = "fur")
+hns <- plot_wt_gene(ecoli_gene_name = "hns")
+```
+What I find interesting about this plot is that fur is very slightly temp regulated in E. coli and S. enterica, but there is big temperature regulation in the other species. 
+
+### Create a combined plot of iron stuff
+```{r}
+(go_0009239 + go_0042930 + go_0016226 + go_0097428)  /  fur / hns + 
+  plot_layout(guides = 'collect',
+              axes = "collect",
+              axis_titles = "collect",
+              heights = c(4,1,1)) +
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.title = element_text(size = 10),
+        axis.title = element_text(size = 10),
+        #        strip.text.x = element_text(size = 5),
+        #   strip.background = element_rect(linewidth = NA)
+  )
+  
+ggsave(filename = "outputs/iron_combined.png", height = 10, width = 10)
+```
+For what species are fur or hns DE?
+
+```{r}
+all_wt_sig_flat |> 
+  filter(gene == "fur")
+
+all_wt_sig_flat |> 
+  filter(gene == "hns")
+```
+
+## Other conserved GO terms
+
+### Citrate Metabolism and TCA cycle
+
+These two terms refer to the identical set of genes:
+```{r}
+
+identical(
+get_genes_from_GO(GO_term_to_inspect = "GO:0006101") |> pull(locus_tag),
+get_genes_from_GO(GO_term_to_inspect = "GO:0006099") |> pull(locus_tag)
+)
+```
+
+```{r}
+tca_plot <- plot_genes_from_GO(GO_term_to_plot = "GO:0006101", title = "tricarboxylic acid cycle")
+tca_plot
+#ggsave(filename = "outputs/intersting plots/tca_cycle.png", height = 5, width = 7)
+```
+Is it the same set of genes in each species? Which genes is it?
+
+```{r}
+tca_genes <- get_genes_from_GO("GO:0006101")
+
+coli_tca_genes <- tca_genes |> 
+  filter(species == "E. coli") |> 
+  dplyr::select(gene, locus_family, log2FoldChange, significant, gene_description)
+
+
+tca_genes |> 
+  filter(locus_family %in% c(2424, 2425))
+
+
+tca_genes |> 
+  group_by(locus_family) |> 
+  summarise(num_genomes_sig = sum(significant))  |> 
+  left_join(coli_tca_genes, by = "locus_family") |> 
+  dplyr::select(locus_family, gene, num_genomes_sig) |> 
+  arrange(desc(num_genomes_sig))
+```
+gltA up in all 6 in the cold.
+mdh in 5 of 6
+acnA in 5 of 6
+
+AcnA and B are isozymes. Ecocyc notes that acnA is stress associated ()
+SucA & B are isozymes, as are SucC & D. Ecyocyc notes that " SucB and SucC were induced during growth at low pH [https://pubmed.ncbi.nlm.nih.gov/12107143/]. Mutant studies showed that the sucB gene is involved in resistance to antibiotics and other stresses in a persister population of E. coli [https://pubmed.ncbi.nlm.nih.gov/20041955/]."
+```{r}
+plot_gene(ecoli_gene_name = "acnA")
+```
+
+
+
+
+
+### Glycine catabolism
+
+```{r}
+glycine_plot <- plot_genes_from_GO(GO_term_to_plot = "GO:0006546", title = "glycine catabolic process")
+glycine_plot
+get_genes_from_GO(GO_term_to_inspect = "GO:0006546")
+```
+gcvPHT are all up in the cold, associated with degredation of glycine to serine
+
+
+### GO:0044011	single-species biofilm formation on inan...
+
+```{r}
+biofilm_plot <- plot_genes_from_GO("GO:0044011", "single-species biofilm formation...")
+#ggsave(filename = "outputs/intersting plots/biofilms.png", height = 5, width = 7 )
+get_genes_from_GO("GO:0044011" ) |> 
+  filter(significant,
+         str_detect(species, "coli|marc|rode"))
+
+```
+
+### GO:0006979	response to osmotic stress
+
+```{r}
+osmo_plot <- plot_genes_from_GO("GO:0006979", "response to osmotic stress")
+get_genes_from_GO("GO:0009312" ) |> 
+  filter(significant,
+         str_detect(species, "coli|enter|rode"))
+```
+These include lipid A biosynthesis, otsAB, 
+
+
+
+
+
+### Create combined plot of misc conserved terms
+
+```{r}
+tca_plot + glycine_plot + osmo_plot + biofilm_plot +  plot_layout(guides = 'collect',
+              axes = "collect",
+              axis_titles = "collect") +
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.title = element_text(size = 10),
+        axis.title = element_text(size = 10),
+        #        strip.text.x = element_text(size = 5),
+        #   strip.background = element_rect(linewidth = NA)
+  )
+
+ggsave(filename = "outputs/misc_GO.png", height = (20/3), width = 10)
+
+```
+This is a heterogenous bunch, including otsBA (trehalose biosynthesis), lpxABCP (lipid A biosynthesis - lipid A is what anchors LPS to the membrane)
+Many of the genes involved in LPS are annotaed for response to oxidative stress, antibiotic biosynthesis, and oligosaccaride. 
+
+
+## Species-specific responses
+
+### E. coli
+
+Ribosomal stuff!
+
+
+
+```{r}
+go_000028 <- plot_genes_from_GO(GO_term_to_plot = "GO:0000028", title = "small subunit ribosome")
+go_000028
+plot_genes_from_GO(GO_term_to_plot = "GO:0000027", title = "large subunit ribosome")
+
+combined_ribosome_plot <- bind_rows(
+  get_genes_from_GO(GO_term_to_inspect = "GO:0000028"),
+  get_genes_from_GO(GO_term_to_inspect = "GO:0000027")
+) |>
+  pull(locus_family) |>
+  unique() |>
+  plot_gene_from_custom_set(title = "GO:0000027 & GO:0000028\nlarge & small subunit\nribosome assembly")                                     
+                                     
+```
+Downregulation of many ribosomal proteins in *E. coli* but not the other species is striking. Is this growth rate associated?
+
+Electron transport also interesting interesting
+
+```{r}
+elect_trans <- plot_genes_from_GO(GO_term_to_plot = "GO:0015990", title = "electron transport coupled proton transport")
+#ggsave(filename = "outputs/intersting plots/proton transport.jpg", width = 7, height = 5)
+#plot_genes_from_GO(GO_term_to_plot = "GO:0022904", title = "respiraotry electron transport chain")
+
+
+combined_ribosome_plot + elect_trans +
+  plot_layout(guides = 'collect',
+              axes = "collect",
+              axis_titles = "collect") +
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.title = element_text(size = 10),
+        axis.title = element_text(size = 10),
+        #        strip.text.x = element_text(size = 5),
+        #   strip.background = element_rect(linewidth = NA)
+  )
+  
+
+ggsave(filename = "outputs/ribosome_proton_transport.jpg", width = 7, height = 4)
+
+get_genes_from_GO(GO_term_to_inspect  = "GO:0015990") |> 
+  filter(species == "E. coli", significant)
+
+```
+cyoABCD is one operon. The proteins form the cytochrome bo quinol:oxygen oxidoreductases 
+nuoNMLB are part of a very large operon for NADH:ubiquinone oxidoreductase I (NDH-1) 
+Future work: Look at the entire nuoNMLB operon- not clear why all genes aren't in the GO term
+
+
+```{r}
+nuo_genes <- paste0("nuo", LETTERS[1:14]) 
+
+ nuo_genes |> 
+    get_locus_family_from_ecoli_name() |> 
+   (\(x) filter(all_wt_sig_flat, locus_family %in% x, species == "E_coli_K12"))() |> 
+   pull(locus_family) |> 
+   plot_gene_from_custom_set(title = "nuo genes") +
+  geom_text(aes(label = gene), nudge_x = .3)
+
+
+plot_gene(ecoli_gene_name = "arcA")
+```
+
+<!-- ### S. enterica -->
+
+<!-- ```{r} -->
+<!-- plot_genes_from_GO("GO:0019579", title = "aladric acid catabolic process") -->
+<!-- ``` -->
+<!-- No clue what is going on here with these genes that are only on in Salmonella. I don't know where aladric acids are encountered. -->
+
+### C. rodentium
+
+
+```{r}
+colanic_go <- plot_genes_from_GO("GO:0009242", title = "colanic acid biosynthetic process") + theme(axis.text.x = element_text(angle = 0))                                                                             
+
+colanic_go
+#ggsave("outputs/intersting plots/colanic acid biosynthesis.png", plot = colanic_go, width = 7, height = 5)
+
+get_genes_from_GO("GO:0009242")
+```
+
+It looks like the annotation is incomplete. So I'll add in the wca genes to the genes with the annotaiion
+
+```{r}
+colanic_acid_go_locus_fams <- get_genes_from_GO("GO:0009242") |>
+  pull(locus_family) |>
+  unique()
+
+wca_genes <- paste0("wca", LETTERS[c(1:6, 9:12)])
+
+wca_locus_families <- wca_genes |>
+  get_locus_family_from_ecoli_name()
+
+plot_gene_from_custom_set(locus_family_of_interest = wca_locus_families)
+
+colanic_acid_custom_set <- c(colanic_acid_go_locus_fams, wca_locus_families)
+
+
+colanic_acid_custom_plot <- colanic_acid_custom_set |>
+  plot_gene_from_custom_set(title = "colanic acid associated genes") + theme(axis.text.x = element_text(angle = 0))
+
+
+
+```
+Citrobacter looks really different here. Need to explore more about these genes and what is happening. I think something about rcsA might be important.
+
+```{r}
+
+
+
+rcsA <- plot_wt_gene(ecoli_gene_name = "rcsA")
+rcsB <- plot_wt_gene(ecoli_gene_name = "rcsB")
+rcsC <- plot_wt_gene(ecoli_gene_name = "rcsC")
+rcsD <- plot_wt_gene(ecoli_gene_name = "rcsD")
+rcsF <- plot_wt_gene(ecoli_gene_name = "rcsF")
+igaA <- plot_wt_gene(ecoli_gene_name = "igaA")
+
+
+colanic_acid_custom_plot / rcsA + rcsB +#  / rcsC / rcsD +
+  plot_layout(axes = "collect",
+              axis_titles = "collect") +
+  plot_annotation(tag_levels = 'A') &
+  theme(plot.title = element_text(size = 10),
+        axis.title = element_text(size = 10),
+        #        strip.text.x = element_text(size = 5),
+        #   strip.background = element_rect(linewidth = NA)
+  )
+
+ggsave(filename = "outputs/colanic_acid.png", height = 7, width = 7.5)
+
+
+##Info on rcs genes
+
+all_wt_sig_flat |> 
+  filter(str_detect(gene, "rcsA"), significant)
+
+all_wt_sig_flat |> 
+  filter(locus_family %in% colanic_acid_custom_set) |> 
+  mutate(significant = replace(significant, is.na(significant), FALSE)) |> 
+  group_by(species, significant) |> 
+  tally()
+
+
+
+
+2^3.37
+
+
+2^1.2
+
+rcsA
+
+```
+
+### Enterobacter, Klebsiella, Serratia
+
+Below I explore for Serratia some of the unique GO terms. Plots make it look like none of these are particularly unique. 
+
+
+```{r}
+enriched_GO_overview |> 
+  filter(number_of_genomes == 1, S_marcescens_Db11 == 1)
+```
+```{r}
+plot_genes_from_GO(GO_term_to_plot = "GO:0006096", title = "")
+```
+
+
+
+
+
+
+
+
+
+```{r}
+plot_gene(ecoli_gene_name = "csrA")
+```
+
+https://ecocyc.org/gene?orgid=ECOLI&id=EG12092
+https://ecocyc.org/gene?orgid=ECOLI&id=EG10181
+
+
+
+
+Trehalose metabolism seems to be more conserved.
+
+```{r}
+plot_genes_from_GO("GO:0005991", "trehelose metabolic process")
+```
+
+Finally, this is a big term, but I notice that E. coli has more upregualted genes involved in amino acid metabolism:
+
+```{r}
+plot_genes_from_GO(GO_term_to_plot = "GO:1901607", title = "alpha-amino acid biosynthetic process")
+```
+These may have already been captured in the histadine biosynthesis plus some others.
+
+
+nucleic acid transport
+
+```{r}
+#plot_genes_from_GO(GO_term_to_plot = "GO:0050657", title = "nucleic acid transport")
+plot_gene(ecoli_gene_name = "sxy")
+```
+
+
+# Quality Control of eggNOG mapping
+
+Is the GO mapping from eggNOG okay? If so, then orthologues should all have the same GO terms associated with them.
+
+I'm going to start by examining the core genes- those that have a single ortholog in each species.
+
+```{r}
+comparison_of_present_genes_wide <- all_wt_sig_flat |>
+  mutate(present = TRUE) |>
+  pivot_wider(
+    id_cols = locus_family,
+    names_from = species,
+    values_from = present,
+    values_fill = FALSE
+  )
+
+#This way works for the conserved things, not sure how to generalize it.
+conserved_locus_families <- comparison_of_present_genes_wide |> 
+  filter(if_all(-locus_family, \(x) x == TRUE)) |> 
+  pull(locus_family)
+
+##Get the locus tag for this locus_family
+
+locus_tag_to_study <- geneinfo_with_locus_fam_no_dups |> 
+  filter(locus_family == conserved_locus_families[1]) |> 
+  dplyr::select(species, locus_tag)
+
+
+
+
+
+
+
+check_GO_terms <- function(locus_tag_to_check){
+  locus_tag_to_study <- geneinfo_with_locus_fam_no_dups |> 
+  filter(locus_family == locus_tag_to_check) |> 
+  dplyr::pull(locus_tag)
+  
+  
+  all_species_gene2GO_flat |> 
+  filter(locus_tag %in% locus_tag_to_study) |> 
+  group_by(GO_terms) |> 
+  tally(name = "num_genomes") |> 
+  slice_max(num_genomes, n = 1)
+  
+}
+
+save <- conserved_locus_families |> 
+  future_map(check_GO_terms, .progress = TRUE) |> 
+  bind_rows()
+
+save |> 
+  group_by(num_genomes) |> 
+  tally(name = "count") |> 
+  mutate(percent = round(100*count/length(conserved_locus_families),1)) 
+
+
+
+```
+I see that of the 90% of the genes have an identical set of GO terms for all six orthologues. So that isn't perfect but it is pretty good. 

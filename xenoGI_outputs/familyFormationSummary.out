@@ -1,0 +1,33 @@
+Blast families:
+  Num initial connected components                  | 6804
+  Num components to split (have more than 48 genes) | 34
+Initial families:
+  Total number of Families                           | 10313
+  Total number of LocusFamilies                      | 14530
+  Total number of genes in families                  | 29163
+  Family size dist [min,q1,q2,q3,max]                | [1, 1.0, 1.0, 5.0, 24]
+  Number of families with one LocusFamily            | 8154
+  Number of families with multiple LocusFamilies     | 2159
+  Number of families with gene(s) in only one strain | 5717
+  Number of families with genes in multiple strains  | 4596
+Origin families:
+  Total number of Families                           | 14460
+  Total number of LocusFamilies                      | 14663
+  Total number of genes in families                  | 29163
+  Family size dist [min,q1,q2,q3,max]                | [1, 1.0, 1.0, 2.0, 16]
+  Number of families with one LocusFamily            | 14287
+  Number of families with multiple LocusFamilies     | 173
+  Number of families with gene(s) in only one strain | 10467
+  Number of families with genes in multiple strains  | 3993
+Family refinement:
+  Number of origin families in small islands | 6360
+  Number of these with multiple MPRs         | 71
+Origin families after refinement:
+  Total number of Families                           | 14453
+  Total number of LocusFamilies                      | 14659
+  Total number of genes in families                  | 29163
+  Family size dist [min,q1,q2,q3,max]                | [1, 1.0, 1.0, 2.0, 16]
+  Number of families with one LocusFamily            | 14278
+  Number of families with multiple LocusFamilies     | 175
+  Number of families with gene(s) in only one strain | 10459
+  Number of families with genes in multiple strains  | 3994

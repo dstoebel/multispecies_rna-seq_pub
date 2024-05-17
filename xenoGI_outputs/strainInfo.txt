@@ -1,0 +1,6 @@
+0	E_coli_K12
+1	K_pneumoniae_KPNIH1
+2	S_typhimurium_14028s
+3	E_cloacae_ATCC13047
+4	C_rodentium_ICC168
+5	S_marcescens_Db11

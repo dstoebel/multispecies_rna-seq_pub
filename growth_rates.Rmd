@@ -1,0 +1,152 @@
+---
+title: "R Notebook"
+author: "Dan Stoebel"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(growthrates)
+library(patchwork)
+theme_set(theme_classic())
+```
+
+```{r}
+files <- c("growth_rates/growth_rate_15_20240202.tsv", "growth_rates/growth_rate_37_20240202.tsv", "growth_rates/growth_rate_15_20240207.tsv", "growth_rates/growth_rate_37_20240207.tsv", "growth_rates/growth_rate_15_20240208.tsv", "growth_rates/growth_rate_37_20240208.tsv")
+merged <- read_tsv(files, id = "file")
+
+#cold <- read_tsv("growth_rates/growth_rate_15_20240207.tsv")
+
+growth_data <- merged |> 
+  mutate(date = str_extract(file, "2024[0-9]+"),
+         temp = str_extract(file, "_([1537]+)_", group = TRUE)) |> 
+  dplyr::select(-file) |> 
+  pivot_longer(cols = contains("DMS"), names_to = "strain", values_to = "OD") |>
+  filter(!is.na(OD)) |>
+  group_by(strain, temp, date) |>
+  mutate(elapsed_mins = (clock_time[[1]] %--% clock_time) / dminutes(1)) |>
+  ungroup() |> 
+  dplyr::select(-clock_time) |> 
+  mutate( species = case_when(
+    str_detect(strain, "DMS2709") ~ "S. typhimurium",
+    str_detect(strain, "DMS2868") ~ "C. rodentium",
+    str_detect(strain, "DMS2797") ~ "K. pneumoniae",
+    str_detect(strain, "DMS2862") ~ "E. cloacae",
+    str_detect(strain, "DMS2843") ~ "S. marcescens",
+    str_detect(strain, "DMS2537") ~ "E. coli",
+    str_detect(strain, "DMS2545") ~ "E. coli",
+    str_detect(strain, "DMS3189") ~ "S. typhimurium",
+    TRUE ~ NA_character_
+  ),
+  genotype = case_when(
+    str_detect(strain, "DMS2709") ~ "wt",
+    str_detect(strain, "DMS2868") ~ "wt",
+    str_detect(strain, "DMS2797") ~ "wt",
+    str_detect(strain, "DMS2862") ~ "wt",
+    str_detect(strain, "DMS2843") ~ "wt",
+    str_detect(strain, "DMS2537") ~ "wt",
+    str_detect(strain, "DMS2545") ~ "rpoS",
+    str_detect(strain, "DMS3189") ~ "rpoS",
+    TRUE ~ NA_character_
+  ),
+  strain_description = paste(species, genotype, sep = " "))
+
+#In future will want to parse the strain info into species and genotype
+
+```
+
+```{r}
+growth_data_37 <- filter(growth_data, temp == 37)
+all_fits_37 <- all_easylinear(OD ~ elapsed_mins | strain_description + date , data = growth_data_37, h = 3)
+
+#plot(all_fits_37, log = "y")
+
+easylinear_coef_37 <- all_fits_37 |>
+  coef() |>
+  as_tibble(rownames = "id") |>
+  separate(
+    col = id,
+    into = c("strain", "date"),
+    sep = ":"
+  ) |>
+  mutate(
+    doubling_time = log(2) / mumax,
+    strain_description = fct_relevel(
+      strain,
+      "E. coli wt",
+      "E. coli rpoS",
+      "S. typhimurium wt",
+      "S. typhimurium rpoS",
+      "C. rodentium wt",
+      "E. cloacae wt",
+      "K. pneumoniae wt",
+      "S. marcescens wt"
+    )
+  ) 
+
+
+summary_37 <- easylinear_coef_37 |>
+  group_by(strain_description) |> 
+  summarise(n = n(),
+            mean_doubling_37 = mean(doubling_time),
+            se_doubling_37 = sd(doubling_time)/sqrt(n()))
+
+```
+
+
+```{r}
+growth_data_15 <- filter(growth_data, temp == 15)
+all_fits_15 <- all_easylinear(OD ~ elapsed_mins | strain_description + date , data = growth_data_15)
+
+#plot(all_fits_15, log = "y")
+
+
+easylinear_coef_15 <- all_fits_15 |>
+  coef() |>
+  as_tibble(rownames = "id") |>
+  separate(
+    col = id,
+    into = c("strain", "date"),
+    sep = ":"
+  ) |>
+  mutate(
+    doubling_time = log(2) / mumax,
+    strain_description = fct_relevel(
+      strain,
+      "E. coli wt",
+      "E. coli rpoS",
+      "S. typhimurium wt",
+      "S. typhimurium rpoS",
+      "C. rodentium wt",
+      "E. cloacae wt",
+      "K. pneumoniae wt",
+      "S. marcescens wt"
+    )
+  ) 
+
+summary_15 <- easylinear_coef_15 |>
+  group_by(strain_description) |> 
+  summarise(n = n(),
+            mean_doubling_15 = mean(doubling_time),
+            se_doubling_15 = sd(doubling_time)/sqrt(n()),
+            mean_lag_15 = mean(lag),
+            se_lag_15 = sd(lag)/sqrt(n()))
+
+full_join(summary_37,
+          summary_15,
+          by = "strain_description",
+          suffix = c("_37", "_15")) |>
+  mutate(
+    mean_se_doubling_37 = paste(round(mean_doubling_37, 1), round(se_doubling_37, 1), sep = " ± "),
+    mean_se_lag_15 = paste(round(mean_lag_15, 1), round(se_lag_15, 1), sep = " ± "),
+    mean_se_doubling_15 = paste(round(mean_doubling_15, 1), round(se_doubling_15, 1), sep = " ± ")
+    
+  ) |>
+  write_tsv(file = "outputs/growth_rate_params.tsv")
+
+
+```
+
+

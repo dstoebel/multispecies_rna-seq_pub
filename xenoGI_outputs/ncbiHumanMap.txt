@@ -1,0 +1,6 @@
+GCF_000005845.2_ASM584v2_genomic.gbff	E_coli_K12
+GCF_000281535.2_ASM28153v2_genomic.gbff	K_pneumoniae_KPNIH1
+GCF_000022165.1_ASM2216v1_genomic.gbff	S_typhimurium_14028s
+GCF_000025565.1_ASM2556v1_genomic.gbff	E_cloacae_ATCC13047
+GCF_000027085.1_ASM2708v1_genomic.gbff	C_rodentium_ICC168
+GCF_000513215.1_DB11_genomic.gbff	S_marcescens_Db11

@@ -1,0 +1,106 @@
+---
+title: "Western blot analysis"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+library(tidyverse)
+library(readxl)
+theme_set(theme_classic())
+source("western_blots/westernHelperFunctions.R")
+```
+
+Start by importing the data
+```{r}
+normalizationData_a1 <- read_excel("western_blots/Cold Shock Trial A part 1 nov 17 2021/cold shock A revert part 1.xls")
+rpoSData_a1 <- read_excel("western_blots/Cold Shock Trial A part 1 nov 17 2021/cold shock A stain part 1.xls")
+normalizationData_b1 <- read_excel("western_blots/Cold Shock Trial B part 1 Nov 17 2021/cold shock B revert part 1.xls")
+rpoSData_b1 <- read_excel("western_blots/Cold Shock Trial B part 1 Nov 17 2021/cold shock B stain part 1.xls")
+normalizationData_c1 <- read_excel("western_blots/Cold Shock Trial C part 1 Nov 17 2021/cold shock C revert part 1.xls")
+rpoSData_c1 <- read_excel("western_blots/Cold Shock Trial C part 1 Nov 17 2021/cold shock C stain part 1.xls")
+normalizationData_d1 <- read_excel("western_blots/Cold Shock Trial D part 1 Nov 19 2021/cold shock D revert part 1.xls")
+rpoSData_d1 <- read_excel("western_blots/Cold Shock Trial D part 1 Nov 19 2021/cold shock D stain part 1.xls")
+normalizationData_e1 <- read_excel("western_blots/Cold Shock Trial E part 1 Nov 29 2021/cold shock E revert part 1.xls")
+rpoSData_e1 <- read_excel("western_blots/Cold Shock Trial E part 1 Nov 29 2021/cold shock E stain part 1.xls")
+
+
+
+```
+
+Normalize all data by Revert levels
+
+```{r}
+
+
+blotData_a1 <- normalizeSingleBlot(normalizationData_a1, rpoSData_a1) %>% 
+  mutate(rep = "A")
+blotData_b1 <- normalizeSingleBlot(normalizationData_b1, rpoSData_b1) %>% 
+  mutate(rep = "B") 
+blotData_c1 <- normalizeSingleBlot(normalizationData_c1, rpoSData_c1) %>% 
+  mutate(rep = "C")
+blotData_d1 <- normalizeSingleBlot(normalizationData_d1, rpoSData_d1) %>% 
+  mutate(rep = "D")
+blotData_e1 <- normalizeSingleBlot(normalizationData_e1, rpoSData_e1) %>% 
+  mutate(rep = "E")
+
+
+
+all_blots <- bind_rows(
+  blotData_a1,
+  blotData_b1,
+  blotData_c1,
+  blotData_d1,
+  blotData_e1
+)
+  
+```
+
+## Format the blot data
+
+```{r}
+all_blots_formatted <- all_blots %>% 
+  separate(col = `Strain Name`, into = c("strain", "time"), sep = "_", extra = "merge") %>%
+  mutate(strain = str_remove(strain, pattern = "\\(wt\\)"),
+         strain = str_remove(strain, pattern = "\\("),
+        strain = str_remove(strain, pattern = "\\)"),
+        strain = fct_relevel(strain,  "E. coli ", "S. enterica ")) 
+```
+
+## Plot the E. coli and S. enterica
+
+```{r}
+all_blots_formatted |> 
+  dplyr::select(strain, rep, time, RpoSratio) |> 
+    filter(str_detect(strain, "coli|enterica"),
+           time != "3d") |> 
+  mutate(condition = case_when(time == "SP" ~ "SP 37°C",
+                               time == "0" ~ "Exp 37°C",
+                               time == "3" ~ "Exp 15°C"),
+        condition = fct_relevel(condition, "SP 37°C",
+                                "Exp 37°C",
+                                "Exp 15°C"),
+         strain = fct_relevel(strain, "E. coli ", 
+                              "E. coli ΔrpoS", 
+                              "S. enterica ",
+                              "S. enterica ΔrpoS"
+                            ),
+         .keep = "unused"
+         ) |> 
+  ggplot(aes(x = condition, y = RpoSratio)) +
+ geom_jitter(color = "lightgray", width = .1) + 
+  stat_summary(fun.data = mean_se, colour = "black", geom = "errorbar", width = .1 ) +
+  stat_summary(fun = mean, color = "black") +
+  facet_grid(~strain) +
+  labs(x = "Temperature",
+       y = "RpoS level (AU)") +
+  theme(strip.text.x = element_text(size = 10, face = "italic"),
+        axis.text.x = element_text(angle = 45, hjust = 1)
+        )
+
+ggsave("outputs/rpoS_western_plot.png", width = 7, height = 4)
+
+```
+

@@ -1,0 +1,386 @@
+---
+title: "initial_QC.rmd"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(DESeq2)
+```
+
+
+```{r}
+locus_family_column_names <-
+  c(
+    "gene_name",
+    "family_origin",
+    "gene_history",
+    "locus_island",
+    "initial_family",
+    "origin_family",
+    "locus_family",
+    "loc_fam_MRCA",
+    "gene_description"
+  )
+
+paths <- list.files("xenoGI_outputs/analysis", pattern = "genes", full.names = TRUE)
+
+all_locus_fam_genes <-
+  read_tsv(
+    paths,
+    skip = 2,
+    col_names = locus_family_column_names,
+    show_col_types = FALSE,
+    comment = "#"
+  ) |>
+  filter(!str_detect(gene_name, "contig")) %>%
+  extract(
+    col = gene_name,
+    into = c("xenoGI_num", "species", "abrv_ID"),
+    regex = "^([0-9]+)_([A-Za-z0-9_]+)-(.+)$",
+    remove = TRUE,
+    convert = TRUE
+  )
+
+rm(locus_family_column_names)
+rm(paths)
+
+
+# Importing geneinfo.txt as geneinfo
+
+# The file `geneinfo.txt` contains the most comprehensive set of gene identifiers for all genes in this study. 
+#I will then add the locus families to this data set.
+
+geneinfo <-
+  read_tsv(
+    "xenoGI_outputs/geneInfo.txt",
+    comment = "#",
+    show_col_types = FALSE,
+    col_names = c(
+      "xenoGI_num",
+      "species",
+      "gene",
+      "locus_tag",
+      "WP_num",
+      "gene_description",
+      "genbank_file",
+      "start",
+      "stop",
+      "strand"
+    )
+  ) |>
+  extract(species , "species", "^[0-9]+_(.+)-", convert = TRUE) 
+
+
+geneinfo_with_locus_fam <- geneinfo |>
+  left_join(all_locus_fam_genes) |>
+  dplyr::select(locus_family, loc_fam_MRCA, species, everything()) |>
+  arrange(locus_family) 
+
+
+
+## Cleaning up the geneinfo tibble to remove duplicates
+
+#The entries in `geneinfo` *should* be unique, but they aren't. 
+#In the table below, we can see a set of 6 genes that have either alternative start codons or alternative stop codons. 
+#This is going to cause problems later, where we should have unique identifiers for each gene.
+
+# geneinfo_with_locus_fam |>
+#   group_by(locus_tag, species) |>
+#   filter(n() > 1) |>
+#   arrange(locus_tag) |>
+#   dplyr::select(locus_tag, start, stop, everything())
+
+
+#In addition, there are some cases where there are paralogues in genomes that have the same locus_family. 
+#This is also going to cause problems with the analysis, because I want to use locus_family to identify orthologues.
+
+
+# geneinfo_with_locus_fam |>
+#   group_by(locus_family, species)  |>
+# filter(n() > 1) |>
+#   arrange(locus_tag) |>
+#   dplyr::select(locus_tag, start, stop, everything())
+
+
+#In both cases, I'm going to only take the first member of each of these duplicated families.
+
+
+geneinfo_with_locus_fam_no_dups <- geneinfo_with_locus_fam |>
+  group_by(locus_tag, species) |>
+  slice_head(n = 1) |> 
+  ungroup() |> 
+  group_by(locus_family, species) |> 
+  slice_head(n = 1)
+
+
+
+# Importing and formatting counts
+
+## Import counts
+
+#These are the counts that I created via BWA and and htseq-count. 
+#First I will get the list of all of the files and then remove the ones that didn't pass intial QC.
+
+
+all_paths <- list.files("RNAseq_data/counts", full.names = TRUE)
+
+
+
+#The command below reads in all of the files and creates one giant (tidy) tibble, with each count from a single replicate as an experiment.
+#Lots of data about the experiment was encoded in the name of the file, so the file name is saved to the new column `id`
+
+all_read_counts <-
+  read_tsv(
+    all_paths,
+    col_names = c("locus_tag", "count"),
+    id = "file",
+    show_col_types = FALSE
+  )
+
+#Now I can start converting all that information in the file name into useful information
+
+
+
+all_counts_with_sample_info <- all_read_counts |> 
+  mutate(sample = str_extract(file, pattern = "counts/(.*)_counts.txt", group = 1),
+        replicate  = case_when(
+    str_detect(file, "counts/A") ~ "A",
+    str_detect(file, "counts/B") ~ "B",
+    str_detect(file, "counts/D") ~ "D",
+    str_detect(file, "counts/E") ~ "E",
+    TRUE ~ NA_character_
+  ),
+  species = case_when(
+    str_detect(file, "JH03") ~ "S_typhimurium_14028s",
+    str_detect(file, "JH04") ~ "C_rodentium_ICC168",
+    str_detect(file, "JH05") ~ "K_pneumoniae_KPNIH1",
+    str_detect(file, "JH06") ~ "E_cloacae_ATCC13047",
+    str_detect(file, "JH07") ~ "S_marcescens_Db11",
+    str_detect(file, "JH08") ~ "E_coli_K12",
+    str_detect(file, "JH09") ~ "E_coli_K12",
+    str_detect(file, "JH20") ~ "S_typhimurium_14028s",
+    TRUE ~ NA_character_
+  ),
+  genotype = case_when(
+    str_detect(file, "JH03") ~ "wt",
+    str_detect(file, "JH04") ~ "wt",
+    str_detect(file, "JH05") ~ "wt",
+    str_detect(file, "JH06") ~ "wt",
+    str_detect(file, "JH07") ~ "wt",
+    str_detect(file, "JH08") ~ "wt",
+    str_detect(file, "JH09") ~ "rpoS",
+    str_detect(file, "JH20") ~ "rpoS",
+    TRUE ~ NA_character_
+  ),
+  temp = case_when(
+    str_detect(file, "_0_") ~ "37C",
+    str_detect(file, "_3_") ~ "15C",
+    TRUE ~ NA_character_
+  )) 
+
+all_counts_by_xenoGI_num <- all_counts_with_sample_info |> 
+  left_join(geneinfo_with_locus_fam_no_dups, by = c("locus_tag", "species")) |> 
+  filter(!is.na(xenoGI_num))
+
+
+all_sample_table <- all_counts_by_xenoGI_num |>
+  dplyr::select(sample, replicate, species, genotype, temp) |>
+  distinct() |>
+  # mutate(
+  #   condition = paste(species, genotype, temp, sep = "_"),
+  #   sample_name = paste(replicate, species, genotype, temp, sep = "_"),
+  #   species = factor(species),
+  #   genotype = factor(genotype),
+  #   temp = factor(temp),
+  #   condition = factor(condition)
+  # ) |>
+  column_to_rownames(var = "sample")
+
+
+counts_by_xenoGI_num_wide <- all_counts_by_xenoGI_num |> 
+  pivot_wider(id_cols = locus_family, names_from =sample, values_from = count, values_fill = 0)
+```
+
+
+```{r}
+# Find significant orthologs for each species.
+
+sig_alpha <- 0.01 # Our significance threshold for this analysis
+
+
+# General function to find signficiant genes
+
+
+run_DESeq_single_contrast <- function(species_to_use, genotype_to_use, temp_to_use, variable_to_test){
+  
+  args <- list(species_to_use, genotype_to_use, temp_to_use)
+  single_level <- map(args, length) == 1
+  
+  output_object <- paste(paste(args[single_level], collapse = "_"), "significance_of", variable_to_test, sep="_")
+  output_object
+  output_file <- paste0("outputs/sig_tables/",output_object,".tsv")
+  design_formula <- formula(paste0("~ ", variable_to_test))
+  
+  
+  samples_to_test <- all_sample_table |>
+    filter(genotype %in% genotype_to_use,
+           species %in% species_to_use,
+           temp %in% temp_to_use)
+  
+  counts_to_test <- counts_by_xenoGI_num_wide |>
+    dplyr::select(c("locus_family", rownames(samples_to_test))) |>
+    # rowwise() |>
+    # filter(sum(c_across(rownames(samples_to_test))) != 0) |>
+    column_to_rownames("locus_family")
+  
+  
+  dds <- DESeqDataSetFromMatrix(countData = counts_to_test,
+                                colData = samples_to_test,
+                                design = design_formula)
+  keep <- rowSums(counts(dds)) >= 10
+  dds <- dds[keep,]
+  
+  dds$temp <- relevel(dds$temp, ref = "37C")
+  dds$genotype <- relevel(dds$genotype, ref = "wt")
+  dds <- DESeq(dds)
+  
+  
+  
+  output_object <- dds |>
+    results() |>
+    as.data.frame() |>
+    as_tibble(rownames = "locus_family") |>
+    mutate(locus_family = as.numeric(locus_family)) |>
+    #Defines which genes are significant for the rest of the analysis. Change this if you want a different adjusted p-value of lfc
+    mutate(significant = padj < sig_alpha &
+             abs(log2FoldChange) > 1) |>
+    mutate(significant = case_when(is.na(padj) ~ NA,
+                                   TRUE ~ significant)) |>
+    left_join(filter(geneinfo_with_locus_fam_no_dups, species == species_to_use)) |>
+    dplyr::select(
+      locus_tag,
+      gene,
+      baseMean,
+      log2FoldChange,
+      padj,
+      significant,
+      species,
+      locus_family,
+      WP_num,
+      gene_description,
+      start,
+      stop,
+      strand
+    )
+  
+  write_tsv(output_object, output_file)
+  
+  output_object
+  
+}
+
+#Calculate the significant genes for each species in the wt case
+
+species <- all_sample_table |> 
+  pull(species) |> 
+  unique()
+
+
+# all_wt_significance <- species |>
+#   as.character() |>
+#   set_names() |>
+#   purrr::map(
+#     \(x) run_DESeq_single_contrast(
+#       species_to_use = x,
+#       genotype_to_use = "wt",
+#       temp_to_use = c("37C", "15C"),
+#       variable_to_test = "temp"
+#     )
+#   )
+```
+
+# Start Quality Control
+
+
+QC criteria #1: Each sample must have at least 1,000,000 mapped read-pairs
+```{r}
+
+
+all_read_counts |> 
+  group_by(file) |> 
+  summarise(total_count = sum(count)) |> 
+  arrange(total_count)
+
+```
+We can see that one same, E_JH04_3 has (just) under 1,000,000 reads, so I'll exclude it.
+
+
+QC criteria #2: Samples from the same species x genotype x time should cluster in PCA of all possible samples.
+
+```{r}
+comparison_of_present_genes <-  all_counts_by_xenoGI_num |> 
+  mutate(present = TRUE) |>
+  dplyr::select(locus_family, species, present) |>
+  distinct() |> 
+  pivot_wider(
+    id_cols = locus_family,
+    names_from = species,
+    values_from = present,
+    values_fill = FALSE
+  )
+
+
+conserved_locus_families <- comparison_of_present_genes |> 
+  filter(if_all(-locus_family, \(x) x == TRUE)) |> 
+  pull(locus_family)
+
+
+counts_by_xenoGI_conserved_wide <- counts_by_xenoGI_num_wide |> 
+  filter(locus_family %in% conserved_locus_families) 
+
+
+all_dds_conserved <-
+  DESeqDataSetFromMatrix(
+    countData = column_to_rownames(counts_by_xenoGI_conserved_wide, "locus_family"),
+    colData = all_sample_table,
+    design = ~ species*temp*replicate
+  ) |>
+  DESeq()
+
+all_vsd <- vst(all_dds_conserved)
+
+plotPCA(all_vsd, intgroup = c("species"))
+```
+We can see that there are three outliers. It looks like they come from K. pneumoniae and S. marcescens. To find out what samples we are talking about, we can look for the three samples with the largest values on PC1, which should all be above 40 on that scale.
+
+```{r}
+pcaData <- plotPCA(all_vsd, intgroup = c("species"), returnData=TRUE) 
+
+pcaData |> 
+  dplyr::select(PC1, PC2,species) |> 
+  arrange(desc(PC1))
+
+
+```
+So the three outlier samples are `E_JH07_0`, `E_JH05_0`, and `B_JH05_0`, which means two from K. pneumoniae and one from S. marcescens, both at 37°C.
+
+
+
+```{r}
+library("RColorBrewer")
+sampleDists <- dist(t(assay(all_vsd)))
+sampleDistMatrix <- as.matrix(sampleDists)
+#rownames(sampleDistMatrix) <- paste(all_vsd$condition, all_vsd$type, sep="-")
+colnames(sampleDistMatrix) <- NULL
+colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
+pheatmap::pheatmap(sampleDistMatrix,
+         clustering_distance_rows=sampleDists,
+         clustering_distance_cols=sampleDists,
+         col=colors, 
+         fontsize = 5)
+
+```
+We can see in this heatmap that the same three samples cluster as outliers relative to everything else, and do not cluster with their own samples. I feel good about removing them. 
+
+

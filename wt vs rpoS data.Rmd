@@ -1,0 +1,540 @@
+---
+title: "Analysis of ∆rpoS data"
+author: "Dan Stoebel"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r message=FALSE}
+library(tidyverse)
+library(DESeq2)
+library(patchwork)
+library(readxl)
+library(topGO)
+library(ComplexUpset)
+theme_set(theme_classic())
+```
+
+
+```{r message=FALSE}
+if(!file.exists("basic_analysis.RData")) {
+  source("basic_analysis.R") 
+  tools::md5sum("basic_analysis.RData")
+  }
+
+if (tools::md5sum("basic_analysis.RData") == "b38dbde28a5928d494dd1b58bf737c01"){
+  load("basic_analysis.RData")
+  print("basic_analysis.RData loaded")
+} else{
+  source("basic_analysis.R")
+  print("basic_analysis.R run")
+  tools::md5sum("basic_analysis.RData")
+}
+```
+
+
+### How many genes are DE between wt & ∆rpoS at 15°C in E. coli and Salmonella
+```{r}
+  wt_vs_rpoS_15_significance |> 
+     map_df(\(x) tibble(species = pull(x, species) |> unique(),
+                        filter(x, significant == TRUE) |> tally() 
+     )
+     )
+```
+So we see that for both E. coli and Salmonella , only a ~20% of the response to cold is DE between wt and ∆rpoS. This is good evidence that  
+
+### What genes are DE between wt & ∆rpoS at 37°C in E. coli and Salmonella
+```{r}
+   wt_vs_rpoS_37_significance |> 
+     map_df(\(x) tibble(species = pull(x, species) |> unique(),
+                        filter(x, significant == TRUE) |> tally() 
+     )
+     )
+
+wt_vs_rpoS_37_significance$E_coli_K12 |> filter(significant)
+wt_vs_rpoS_37_significance$S_typhimurium_14028s |> filter(significant)
+```
+Only two genes differ between wt and ∆rpoS in E. coli in log phase. This is a good (expected!) result. There are more genes for Salmonella.
+
+
+### How similar are these two rpoS regulons?
+
+```{r}
+locus_fam_sig_at_15C <- wt_vs_rpoS_15_significance |> 
+  bind_rows() |> 
+  filter(significant) |> 
+  pull(locus_family) |> 
+  unique()
+
+
+DE_each_species_table <- wt_vs_rpoS_15_significance |>
+  bind_rows() |>
+  filter(locus_family %in% locus_fam_sig_at_15C) |>
+  mutate(significant = replace(significant, is.na(significant), FALSE)) |>
+  dplyr::select(locus_family, significant, species) |> 
+  pivot_wider(names_from = species, values_from = significant) |>
+  group_by(E_coli_K12, S_typhimurium_14028s) |>
+  tally()
+
+DE_each_species_table 
+
+species <- c("E. coli", "E. coli", "E. coli", "S. enterica", "S. enterica", "S. enterica")
+status_other_species <- c("Present, not DE", "DE", "Not present", "Present, not DE", "DE", "Not present")
+n <- c(99, 83, 50, 49, 83, 57)
+
+tibble(species, status_other_species, n) |>
+  mutate(status_other_species = fct_rev(status_other_species)) |>
+  ggplot() +
+  geom_col(aes(x = species, y = n, fill = status_other_species)) +
+  scale_fill_brewer(palette = "Dark2",
+                    guide = guide_legend(reverse = TRUE)) +
+  labs(x = "Species",
+       y = "Number of genes",
+       fill = "Status in the\nother species") +
+  theme(axis.text.y = element_text(face = "italic"),
+        legend.position = "top") +
+  coord_flip()
+
+ggsave("outputs/delRpoS_genes.png", width = 6, height = 3)
+
+```
+
+
+### Break down similarlity of up-regulated regulons and down-regulated regulons
+
+```{r}
+
+#The block below gives us the genes that are up-regulated by the presence of RpoS.
+#In step 3 we ask for log2FoldChange < 0 because this returns genes that are lower 
+#when we take away RpoS, i.e. RpoS is a positive regulator
+
+locus_fam_sig_up_at_15C <- wt_vs_rpoS_15_significance |> 
+  bind_rows() |> 
+  filter(significant & log2FoldChange < 0) |> 
+  pull(locus_family) |> 
+  unique()
+
+
+DE_up_each_species_table <- wt_vs_rpoS_15_significance |>
+  bind_rows() |>
+  filter(locus_family %in% locus_fam_sig_up_at_15C) |>
+  mutate(significant = replace(significant, is.na(significant), FALSE)) |>
+  dplyr::select(locus_family, significant, species) |> 
+  pivot_wider(names_from = species, values_from = significant) |>
+  group_by(E_coli_K12, S_typhimurium_14028s) |>
+  tally()
+
+DE_up_each_species_table 
+
+species <- c("E. coli", "E. coli", "E. coli", "S. enterica", "S. enterica", "S. enterica")
+status_other_species <- c("Present, not DE", "DE", "Not present", "Present, not DE", "DE", "Not present")
+n_up <-  c(84, 83, 46, 44, 83, 44)
+
+rpoS_up_plot <- tibble(species, status_other_species, n_up) |>
+  mutate(status_other_species = fct_rev(status_other_species)) |>
+  ggplot() +
+  geom_col(aes(x = species, y = n_up, fill = status_other_species)) +
+  scale_fill_brewer(palette = "Dark2",
+                    guide = guide_legend(reverse = TRUE)) +
+  labs(x = "Species",
+       y = "Number of genes",
+       fill = "Status in the\nother species") +
+  theme(axis.text.y = element_text(face = "italic"),
+        legend.position = "top") 
+
+```
+
+```{r}
+
+#The block below gives us the genes that are down-regulated by the presence of RpoS.
+#In step 3 we ask for log2FoldChange  0 becuase this returns genes that are lower 
+#when we take away RpoS, i.e. RpoS is a positive regulator
+
+locus_fam_sig_down_at_15C <- wt_vs_rpoS_15_significance |> 
+  bind_rows() |> 
+  filter(significant & log2FoldChange > 0) |> 
+  pull(locus_family) |> 
+  unique()
+
+
+DE_down_each_species_table <- wt_vs_rpoS_15_significance |>
+  bind_rows() |>
+  filter(locus_family %in% locus_fam_sig_down_at_15C) |>
+  mutate(significant = replace(significant, is.na(significant), FALSE)) |>
+  dplyr::select(locus_family, significant, species) |> 
+  pivot_wider(names_from = species, values_from = significant) |>
+  group_by(E_coli_K12, S_typhimurium_14028s) |>
+  tally()
+
+DE_down_each_species_table 
+
+species <- c("E. coli", "E. coli", "E. coli", "S. enterica", "S. enterica", "S. enterica")
+status_other_species <- c("Present, not DE", "DE", "Not present", "Present, not DE", "DE", "Not present")
+n_down <-  c(15, 0, 4, 5, 0, 13)
+
+rpoS_down_plot <- tibble(species, status_other_species, n_down) |>
+  mutate(status_other_species = fct_rev(status_other_species)) |>
+  ggplot() +
+  geom_col(aes(x = species, y = n_down, fill = status_other_species)) +
+  scale_fill_brewer(palette = "Dark2",
+                    guide = guide_legend(reverse = TRUE)) +
+  labs(x = "Species",
+       y = "Number of genes",
+       fill = "Status in the\nother species") +
+  theme(axis.text.y = element_text(face = "italic"),
+        legend.position = "top") 
+
+rpoS_down_plot
+
+```
+
+
+
+
+
+
+
+
+### What are the genes that are RpoS-regulated in both species?
+
+```{r}
+
+tibble(locus_family = locus_fam_sig_at_15C) |> 
+  left_join(wt_vs_rpoS_15_significance$E_coli_K12) |>
+  left_join(
+    wt_vs_rpoS_15_significance$S_typhimurium_14028s,
+    join_by(locus_family),
+    suffix = c("_ec", "_se")
+  ) |>
+  filter(significant_ec, significant_se) |>
+  dplyr::select(locus_family, gene_ec, gene_se, significant_ec, significant_se) 
+```
+
+### What are the RpoS-regulated genes only in E. coli
+
+```{r}
+tibble(locus_family = locus_fam_sig_at_15C) |> 
+  left_join(wt_vs_rpoS_15_significance$E_coli_K12) |>
+  left_join(
+    wt_vs_rpoS_15_significance$S_typhimurium_14028s,
+    join_by(locus_family),
+    suffix = c("_ec", "_se")
+  ) |>
+  filter(significant_ec, (!significant_se|is.na(significant_se))) |>
+  dplyr::select(locus_family, gene_ec, gene_se, significant_ec, significant_se, locus_tag_ec, locus_tag_se) 
+
+```
+
+### What are the RpoS-regulated genes only in S. enterica
+
+```{r}
+tibble(locus_family = locus_fam_sig_at_15C) |> 
+  left_join(wt_vs_rpoS_15_significance$E_coli_K12) |>
+  left_join(
+    wt_vs_rpoS_15_significance$S_typhimurium_14028s,
+    join_by(locus_family),
+    suffix = c("_ec", "_se")
+  ) |>
+  filter(significant_se, (!significant_ec|is.na(significant_ec))) |>
+  dplyr::select(locus_family, gene_ec, gene_se, significant_ec, significant_se, locus_tag_ec, locus_tag_se) 
+
+```
+
+
+### What proportion of the cold regulated genes are also RpoS regulated?
+
+In E. coli:
+
+```{r}
+ec_cold_locus_tags <- all_wt_sig_flat |> 
+  filter(significant == TRUE, species == "E_coli_K12") |> 
+  pull(locus_tag)
+  
+ec_rpoS_locus_tags <- wt_vs_rpoS_15_significance |> 
+  bind_rows() |> 
+  filter(significant, species == "E_coli_K12") |> 
+  pull(locus_tag)
+
+ec_cold_locus_tags %in% ec_rpoS_locus_tags |> 
+  summary()
+
+212/(212+845)
+
+```
+
+```{r}
+se_cold_locus_tags <- all_wt_sig_flat |> 
+  filter(significant == TRUE, species == "S_typhimurium_14028s") |> 
+  pull(locus_tag)
+  
+se_rpoS_locus_tags <- wt_vs_rpoS_15_significance |> 
+  bind_rows() |> 
+  filter(significant, species == "S_typhimurium_14028s") |> 
+  pull(locus_tag)
+
+se_cold_locus_tags %in% se_rpoS_locus_tags |> 
+  summary()
+
+144/(144+722)
+```
+
+
+
+# What functions do RpoS-regulated genes have?
+
+```{r}
+eggnog_results <-
+  read_excel("eggNOG-mapper/out.emapper.annotations.xlsx", range = "A3:U28120") |>
+  separate_wider_delim(
+    cols = query,
+    delim = "-",
+    names = c("species", "locus_tag")
+  )
+
+delRpoS_species <- c("E_coli_K12",
+    "S_typhimurium_14028s") 
+```
+
+### Read in the GO mappings for topGO
+```{r}
+delRpoS_gene2GO <- c("outputs/GO/E_coli_K12_GO_terms_for_topGO.tsv", "outputs/GO/S_typhimurium_14028s_GO_terms_for_topGO.tsv" )|>
+  purrr::map(\(x) readMappings(x))
+
+names(delRpoS_gene2GO) <- delRpoS_species
+```
+
+### Flatten out all_species_gene2GO 
+
+```{r}
+delRpoS_gene2GO_flat <- c("outputs/GO/E_coli_K12_GO_terms_for_topGO.tsv", "outputs/GO/S_typhimurium_14028s_GO_terms_for_topGO.tsv" ) |> 
+  read_tsv(col_names = c("locus_tag", "GO_terms"), id = "species") |> 
+  mutate(species = str_extract(species, "outputs/GO/(.+)_GO_terms.tsv", group = 1))
+
+
+```
+
+
+
+### Read in significance data for topGO
+
+```{r}
+delRpoS_sig <-
+  list.files(path = "outputs/sig_tables",
+             pattern = "15C_significance_of_genotype",
+             full.names = TRUE,
+  ) |>
+  purrr::map(\(x) read_tsv(x, show_col_types = FALSE))
+
+names(delRpoS_sig) <- delRpoS_species
+
+delRpoS_sig_genes_each_species <- delRpoS_sig |>
+  purrr::map(\(x) dplyr::select(x, locus_tag, padj)) |>
+  purrr::map(\(x) set_names(pull(x, padj), nm = pull(x, locus_tag)))
+
+
+delRpoS_sig_genes_list <- delRpoS_sig |>
+  purrr::map(\(x) dplyr::filter(x, significant)) |>
+  purrr::map(\(x) dplyr::pull(x, locus_tag))
+
+delRpoS_all_genes_list <- delRpoS_sig |>
+  purrr::map(\(x) dplyr::pull(x, locus_tag)) 
+```
+
+
+
+
+
+```{r}
+make_delRpoS_topGO_object <- function(x) {
+  genes_sig_or_not <-
+    factor(as.integer(delRpoS_all_genes_list[[x]] %in% delRpoS_sig_genes_list[[x]]))
+  
+  names(genes_sig_or_not) <- delRpoS_all_genes_list[[x]]
+  
+  geneID2GO <- delRpoS_gene2GO[[x]]
+  
+  initialGOdata <- new(
+    "topGOdata",
+    ontology = "BP",
+    allGenes = genes_sig_or_not,
+    nodeSize = 5,
+    gene2GO  = geneID2GO,
+    annot    = annFUN.gene2GO
+  )
+}
+
+run_enrichment <- function(x, alg = "weight01", stat = "fisher") {
+  test.stat <- runTest(object = x,
+                       algorithm = alg,
+                       statistic = stat)
+  
+  GenTable(x, pval = test.stat, topNodes = 50)
+  
+}
+
+```
+
+
+## Generate the GO enrichment table for each species
+```{r}
+
+delRpoS_topGO_objects <- delRpoS_species |>
+  purrr::set_names() |>
+  purrr::map(make_delRpoS_topGO_object) 
+
+delRpoS_GO_tables <- delRpoS_topGO_objects |> 
+  purrr::map(run_enrichment) |> 
+  purrr::map(\(x) filter(x, pval < 0.05))
+
+delRpoS_filtered_GO_tables <- delRpoS_GO_tables |> 
+  purrr::map(\(x) mutate(x, pval = as.numeric(pval))) |> 
+  purrr::map(\(x) filter(x, pval < 0.05)) |> 
+  purrr::imap(\(x, idx) write_tsv(x, paste0("outputs/GO/enriched_GO_terms_in_delRpoS_", idx,".tsv")))
+```
+
+
+Figure out if there are any commonalities across the enriched genes.
+The tibble `enriched_GO_overview` lists all of the GO terms that are enriched in at least one genome.
+```{r}
+
+  
+ delRpoS_enriched_GO_overview <- delRpoS_filtered_GO_tables |> 
+  purrr::map(\(x) dplyr::select(x, GO.ID, term = Term)) |> 
+  imap(\(x, idx) tibble(as.data.frame(x), species = idx)) |> 
+  bind_rows() |> 
+  mutate(present = 1) |> 
+  pivot_wider(names_from = species, values_from = present, values_fill = 0) |> 
+  rowwise() |> 
+  mutate(number_of_genomes = sum(across(E_coli_K12:S_typhimurium_14028s))) |> 
+  ungroup() |> 
+  dplyr::select(GO.ID, term, number_of_genomes, everything()) |> 
+  arrange(desc(number_of_genomes))
+
+#Format and write the table to file for easy of browsing by other users
+
+ delRpoS_enriched_GO_overview |>
+  mutate(across(4:5, as.logical)) |> 
+  dplyr::select(
+    `GO.ID`,
+    term,
+    `number of genomes enriched` = number_of_genomes,
+    `E. coli` = "E_coli_K12",
+    `S. typhimurium` = "S_typhimurium_14028s",
+  ) |> 
+  write_tsv(file = "outputs/GO/delRpoS_enriched_GO_overview.tsv")
+
+ delRpoS_enriched_GO_overview |> 
+   filter(number_of_genomes == 2)
+ 
+ delRpoS_enriched_GO_overview |> 
+  group_by(number_of_genomes ==2) |> 
+  tally()
+
+```
+
+A few terms enriched in both species, including trehelose metabolism, response to oxidants, hyperosmotic response. Here's an example of one of those
+
+```{r}
+genesInTerm(object = delRpoS_topGO_objects$E_coli_K12, whichGO = "GO:0005991") |> 
+    unlist() |>
+  enframe() |>
+  dplyr::select(value) |>
+  left_join(wt_vs_rpoS_15_significance$E_coli_K12, join_by(value == locus_tag)) |> 
+  filter(significant)
+```
+
+
+
+### GO Terms only enriched in E. coli
+
+```{r}
+
+ delRpoS_enriched_GO_overview |> 
+  filter(E_coli_K12==1, 
+         S_typhimurium_14028s== 0)
+
+genesInTerm(object = delRpoS_topGO_objects$E_coli_K12, whichGO = "GO:0006553") |> 
+    unlist() |>
+  enframe() |>
+  dplyr::select(value) |>
+  left_join(wt_vs_rpoS_15_significance$E_coli_K12, join_by(value == locus_tag)) |> 
+  filter(significant)
+```
+
+```{r}
+ delRpoS_enriched_GO_overview |> 
+  filter(E_coli_K12==0, 
+         S_typhimurium_14028s== 1)
+
+genesInTerm(object = delRpoS_topGO_objects$S_typhimurium_14028s, whichGO = "GO:0006970") |> 
+    unlist() |>
+  enframe() |>
+  dplyr::select(value) |>
+  left_join(wt_vs_rpoS_15_significance$S_typhimurium_14028s, join_by(value == locus_tag)) |> 
+  filter(significant)
+```
+
+
+What I see is that most GO terms are unique to each species. Only 14 of 49 terms are common in both species, leaving 35 of 49 enriched in only a single genome. I'd like to better understand what the reason for this. Is it that these genes are simply not present in all of the genomes, so they can't be upregulated in parallel? Or are they present but not DE?
+### Create an upset plot to look at how GO terms are shared
+```{r}
+
+
+delRpoS_GO_for_upset <- delRpoS_enriched_GO_overview |> 
+  dplyr::select(E_coli_K12:S_typhimurium_14028s) |> 
+  mutate(across(everything(), as.logical))
+
+
+upset(
+  delRpoS_GO_for_upset,
+  delRpoS_species,
+  set_sizes = FALSE ,
+  sort_sets = FALSE,
+  base_annotations=list(
+        'Number of enriched GO terms'=intersection_size(text = aes(size = 2.5))
+    ),
+  labeller = format_species_names,
+  themes = upset_default_themes(
+    text = element_text(size = 10)
+)
+)
+
+#ggsave(filename = "outputs/intersting plots/delRpoS_GO_upset.png", width = 8, height= 5)
+```
+
+# How do these E. coli data compare to our earlier cold data
+
+In Adams et al. (2023) we found RpoS-regulated genes in the cold. How do these data compare?
+
+
+```{r}
+adams_data <- read_csv("adamsetal_combined_deseq_analysis.csv")
+
+
+#This experiment
+x <- delRpoS_sig_genes_list$E_coli_K12
+
+#previous experiment
+y <- adams_data |> 
+  filter(sig_cold) |> 
+  pull(bNum)
+
+x %in% y |> 
+  summary()
+
+rm(x,y)
+```
+so 189 of 232 (81%)
+
+
+```{r}
+genesInTerm(object = delRpoS_topGO_objects$E_coli_K12, whichGO = "GO:0006553") |>
+  unlist() |>
+  enframe() |>
+  dplyr::select(value) |>
+  left_join(all_wt_significance$E_coli_K12, join_by(value == locus_tag))
+
+```
+
+
+
