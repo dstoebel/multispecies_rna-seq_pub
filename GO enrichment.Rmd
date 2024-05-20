@@ -36,11 +36,9 @@ plan(multisession, workers = 2)
 
 ```{r message=FALSE}
 if(!file.exists("basic_analysis.RData")) {
-  source("basic_analysis.R") 
+  source("basic_analysis.R")
   tools::md5sum("basic_analysis.RData")
-  }
-
-if (tools::md5sum("basic_analysis.RData") == "b38dbde28a5928d494dd1b58bf737c01"){
+} else if (tools::md5sum("basic_analysis.RData") == "c8a2afac305759229b7085cfc279a4af") {
   load("basic_analysis.RData")
   print("basic_analysis.RData loaded")
 } else{

@@ -32,7 +32,7 @@ if(!file.exists("basic_analysis.RData")) {
   tools::md5sum("basic_analysis.RData")
   }
 
-if (tools::md5sum("basic_analysis.RData") == "b38dbde28a5928d494dd1b58bf737c01"){
+else (tools::md5sum("basic_analysis.RData") == "c8a2afac305759229b7085cfc279a4af"){
   load("basic_analysis.RData")
   print("basic_analysis.RData loaded")
 } else{
