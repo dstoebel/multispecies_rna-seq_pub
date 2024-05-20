@@ -1,0 +1,43 @@
+GO.ID	Term	Annotated	Significant	Expected	pval
+GO:0006412	translation	125	65	34.39	5.2e-13
+GO:0000028	ribosomal small subunit assembly	19	16	5.23	3.8e-7
+GO:0000027	ribosomal large subunit assembly	27	18	7.43	2.3e-5
+GO:0009097	isoleucine biosynthetic process	7	7	1.93	1.2e-4
+GO:0009239	enterobactin biosynthetic process	7	7	1.93	1.2e-4
+GO:0009447	putrescine catabolic process	9	8	2.48	2.2e-4
+GO:0008652	amino acid biosynthetic process	111	43	30.54	3.8e-4
+GO:0015990	electron transport coupled proton transp...	8	7	2.2	7.1e-4
+GO:0042956	maltodextrin transmembrane transport	5	5	1.38	0.00156
+GO:0006637	acyl-CoA metabolic process	7	6	1.93	0.00229
+GO:0009099	valine biosynthetic process	7	6	1.93	0.00229
+GO:0008152	metabolic process	1961	540	539.51	0.00405
+GO:0009409	response to cold	19	11	5.23	0.00503
+GO:0046185	aldehyde catabolic process	26	10	7.15	0.0057
+GO:0044011	single-species biofilm formation on inan...	15	9	4.13	0.00697
+GO:0052803	imidazole-containing compound metabolic ...	8	6	2.2	0.00703
+GO:0000105	histidine biosynthetic process	8	6	2.2	0.00703
+GO:0009078	pyruvate family amino acid metabolic pro...	6	5	1.65	0.00723
+GO:1901607	alpha-amino acid biosynthetic process	101	40	27.79	0.0185
+GO:0045947	negative regulation of translational ini...	7	5	1.93	0.01958
+GO:0009098	leucine biosynthetic process	7	5	1.93	0.01958
+GO:0170040	proteinogenic amino acid catabolic proce...	45	23	12.38	0.02006
+GO:0170035	L-amino acid catabolic process	45	23	12.38	0.02006
+GO:1990748	cellular detoxification	22	9	6.05	0.0207
+GO:0051641	cellular localization	66	16	18.16	0.02113
+GO:0044282	small molecule catabolic process	210	54	57.77	0.0213
+GO:0009636	response to toxic substance	67	28	18.43	0.02191
+GO:0009450	gamma-aminobutyric acid catabolic proces...	5	4	1.38	0.02224
+GO:0015768	maltose transport	5	4	1.38	0.02224
+GO:0006097	glyoxylate cycle	5	4	1.38	0.02224
+GO:0005978	glycogen biosynthetic process	5	4	1.38	0.02224
+GO:0046436	D-alanine metabolic process	5	4	1.38	0.02224
+GO:0006546	glycine catabolic process	5	4	1.38	0.02224
+GO:0034644	cellular response to UV	5	4	1.38	0.02224
+GO:0097164	ammonium ion metabolic process	28	13	7.7	0.0244
+GO:0006979	response to oxidative stress	89	34	24.49	0.02783
+GO:0034641	cellular nitrogen compound metabolic pro...	1016	286	279.52	0.03219
+GO:0017148	negative regulation of translation	25	14	6.88	0.03408
+GO:0000162	tryptophan biosynthetic process	8	5	2.2	0.04049
+GO:0006099	tricarboxylic acid cycle	16	8	4.4	0.04616
+GO:0006101	citrate metabolic process	16	8	4.4	0.04616
+GO:0009312	oligosaccharide biosynthetic process	40	11	11	0.04741

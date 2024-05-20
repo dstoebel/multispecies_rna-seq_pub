@@ -1,0 +1,28 @@
+GO.ID	Term	Annotated	Significant	Expected	pval
+GO:0009239	enterobactin biosynthetic process	7	6	1.18	1.3e-4
+GO:0009312	oligosaccharide biosynthetic process	31	11	5.24	2e-4
+GO:0097428	protein maturation by iron-sulfur cluste...	6	5	1.01	6.9e-4
+GO:0042930	enterobactin transport	6	5	1.01	6.9e-4
+GO:0009252	peptidoglycan biosynthetic process	30	12	5.07	0.00212
+GO:0050821	protein stabilization	5	4	0.84	0.00348
+GO:0033214	siderophore-dependent iron import into c...	5	4	0.84	0.00348
+GO:0051701	biological process involved in interacti...	9	5	1.52	0.00475
+GO:0006094	gluconeogenesis	9	5	1.52	0.00934
+GO:0008360	regulation of cell shape	16	7	2.7	0.01055
+GO:0065008	regulation of biological quality	91	29	15.37	0.01096
+GO:0044036	cell wall macromolecule metabolic proces...	36	12	6.08	0.01167
+GO:0009432	SOS response	20	8	3.38	0.01181
+GO:0009245	lipid A biosynthetic process	10	5	1.69	0.01612
+GO:0046677	response to antibiotic	55	16	9.29	0.0167
+GO:1901271	lipooligosaccharide biosynthetic process	12	7	2.03	0.02793
+GO:0009247	glycolipid biosynthetic process	12	7	2.03	0.02793
+GO:0010468	regulation of gene expression	222	30	37.5	0.03018
+GO:0007165	signal transduction	41	8	6.93	0.03231
+GO:0006207	'de novo' pyrimidine nucleobase biosynth...	5	3	0.84	0.03663
+GO:0006083	acetate metabolic process	5	3	0.84	0.03663
+GO:0010041	response to iron(III) ion	5	3	0.84	0.03663
+GO:0046349	amino sugar biosynthetic process	5	3	0.84	0.03663
+GO:0006546	glycine catabolic process	5	3	0.84	0.03663
+GO:0061077	chaperone-mediated protein folding	20	7	3.38	0.03889
+GO:0015949	nucleobase-containing small molecule int...	25	8	4.22	0.04692
+GO:0034755	iron ion transmembrane transport	9	4	1.52	0.04979

@@ -1,0 +1,51 @@
+GO.ID	Term	Annotated	Significant	Expected	pval
+GO:0006974	DNA damage response	190	60	41.97	2.2e-7
+GO:0034219	carbohydrate transmembrane transport	54	29	11.93	2.6e-5
+GO:0009239	enterobactin biosynthetic process	6	6	1.33	1.1e-4
+GO:0016999	antibiotic metabolic process	50	27	11.04	1.2e-4
+GO:0006101	citrate metabolic process	15	10	3.31	2.6e-4
+GO:0006099	tricarboxylic acid cycle	15	10	3.31	2.6e-4
+GO:0006979	response to oxidative stress	74	27	16.35	0.00136
+GO:0031460	glycine betaine transport	10	7	2.21	0.00158
+GO:0006812	monoatomic cation transport	146	34	32.25	0.00172
+GO:0033212	iron import into cell	10	8	2.21	0.00231
+GO:0006972	hyperosmotic response	14	9	3.09	0.00502
+GO:0006820	monoatomic anion transport	107	32	23.64	0.00509
+GO:0009401	phosphoenolpyruvate-dependent sugar phos...	23	11	5.08	0.00541
+GO:0071214	cellular response to abiotic stimulus	16	9	3.53	0.00713
+GO:0006836	neurotransmitter transport	7	5	1.55	0.00727
+GO:0042930	enterobactin transport	7	5	1.55	0.00727
+GO:0009409	response to cold	15	8	3.31	0.00783
+GO:0005991	trehalose metabolic process	5	4	1.1	0.00972
+GO:0005978	glycogen biosynthetic process	5	4	1.1	0.00972
+GO:0097305	response to alcohol	5	4	1.1	0.00972
+GO:0015685	ferric-enterobactin import into cell	5	4	1.1	0.00972
+GO:0006596	polyamine biosynthetic process	5	4	1.1	0.00972
+GO:0044718	siderophore transmembrane transport	5	4	1.1	0.00972
+GO:0015757	galactose transmembrane transport	5	4	1.1	0.00972
+GO:0042956	maltodextrin transmembrane transport	5	4	1.1	0.00972
+GO:0051085	chaperone cofactor-dependent protein ref...	5	4	1.1	0.00972
+GO:0006546	glycine catabolic process	5	4	1.1	0.00972
+GO:0019579	aldaric acid catabolic process	5	4	1.1	0.00972
+GO:0019220	regulation of phosphate metabolic proces...	10	6	2.21	0.01044
+GO:0051641	cellular localization	52	17	11.49	0.01051
+GO:0032879	regulation of localization	18	8	3.98	0.01866
+GO:0033554	cellular response to stress	253	81	55.89	0.0235
+GO:0097237	cellular response to toxic substance	24	10	5.3	0.02372
+GO:0033499	galactose catabolic process via UDP-gala...	6	4	1.33	0.02408
+GO:0015766	disaccharide transport	6	4	1.33	0.02408
+GO:0042940	D-amino acid transport	6	4	1.33	0.02408
+GO:0032101	regulation of response to external stimu...	6	4	1.33	0.02408
+GO:1902021	regulation of bacterial-type flagellum-d...	9	5	1.99	0.02935
+GO:0015718	monocarboxylic acid transport	12	6	2.65	0.03064
+GO:0070887	cellular response to chemical stimulus	78	28	17.23	0.03399
+GO:0046031	ADP metabolic process	19	8	4.2	0.03548
+GO:0006089	lactate metabolic process	13	6	2.87	0.03562
+GO:0044403	biological process involved in symbiotic...	13	5	2.87	0.03583
+GO:0044248	cellular catabolic process	227	56	50.14	0.03723
+GO:0032774	RNA biosynthetic process	224	44	49.48	0.03761
+GO:0046835	carbohydrate phosphorylation	19	8	4.2	0.03982
+GO:0008645	hexose transmembrane transport	12	8	2.65	0.04556
+GO:0070301	cellular response to hydrogen peroxide	7	4	1.55	0.0465
+GO:0046487	glyoxylate metabolic process	7	4	1.55	0.0465
+GO:0051248	negative regulation of protein metabolic...	28	6	6.19	0.04737

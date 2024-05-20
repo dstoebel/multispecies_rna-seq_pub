@@ -1,0 +1,156 @@
+GO.ID	term	number of genomes enriched	E. coli	S. enterica	C. rodentium	E. cloacae	K. pneumoniae	S. marcescens
+GO:0009239	enterobactin biosynthetic process	4	TRUE	TRUE	TRUE	FALSE	TRUE	FALSE
+GO:0042930	enterobactin transport	4	FALSE	TRUE	TRUE	TRUE	TRUE	FALSE
+GO:0006101	citrate metabolic process	4	TRUE	TRUE	FALSE	TRUE	FALSE	TRUE
+GO:0006099	tricarboxylic acid cycle	4	TRUE	TRUE	FALSE	TRUE	FALSE	TRUE
+GO:0006546	glycine catabolic process	4	TRUE	TRUE	FALSE	FALSE	TRUE	TRUE
+GO:0051641	cellular localization	3	TRUE	TRUE	TRUE	FALSE	FALSE	FALSE
+GO:0044011	single-species biofilm formation on inan...	3	TRUE	FALSE	TRUE	FALSE	FALSE	TRUE
+GO:0006979	response to oxidative stress	3	TRUE	TRUE	TRUE	FALSE	FALSE	FALSE
+GO:0016999	antibiotic metabolic process	3	FALSE	TRUE	FALSE	TRUE	FALSE	TRUE
+GO:0051289	protein homotetramerization	2	FALSE	FALSE	TRUE	TRUE	FALSE	FALSE
+GO:0033212	iron import into cell	2	FALSE	TRUE	TRUE	FALSE	FALSE	FALSE
+GO:0005991	trehalose metabolic process	2	FALSE	TRUE	TRUE	FALSE	FALSE	FALSE
+GO:0040011	locomotion	2	FALSE	FALSE	TRUE	TRUE	FALSE	FALSE
+GO:0009252	peptidoglycan biosynthetic process	2	FALSE	FALSE	TRUE	FALSE	TRUE	FALSE
+GO:0006974	DNA damage response	2	FALSE	TRUE	TRUE	FALSE	FALSE	FALSE
+GO:0006972	hyperosmotic response	2	FALSE	TRUE	TRUE	FALSE	FALSE	FALSE
+GO:0034755	iron ion transmembrane transport	2	FALSE	FALSE	TRUE	FALSE	TRUE	FALSE
+GO:0008360	regulation of cell shape	2	FALSE	FALSE	TRUE	FALSE	TRUE	FALSE
+GO:0006970	response to osmotic stress	2	FALSE	FALSE	TRUE	FALSE	FALSE	TRUE
+GO:0006793	phosphorus metabolic process	2	FALSE	FALSE	TRUE	FALSE	FALSE	TRUE
+GO:0044036	cell wall macromolecule metabolic proces...	2	FALSE	FALSE	TRUE	FALSE	TRUE	FALSE
+GO:0009225	nucleotide-sugar metabolic process	2	FALSE	FALSE	TRUE	FALSE	FALSE	TRUE
+GO:0008152	metabolic process	2	TRUE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0015718	monocarboxylic acid transport	2	FALSE	TRUE	TRUE	FALSE	FALSE	FALSE
+GO:0009314	response to radiation	2	FALSE	FALSE	TRUE	FALSE	FALSE	TRUE
+GO:0009061	anaerobic respiration	2	FALSE	FALSE	FALSE	TRUE	FALSE	TRUE
+GO:0022900	electron transport chain	2	FALSE	FALSE	FALSE	TRUE	FALSE	TRUE
+GO:0015685	ferric-enterobactin import into cell	2	FALSE	TRUE	FALSE	TRUE	FALSE	FALSE
+GO:0044718	siderophore transmembrane transport	2	FALSE	TRUE	FALSE	TRUE	FALSE	FALSE
+GO:0006097	glyoxylate cycle	2	TRUE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0097428	protein maturation by iron-sulfur cluste...	2	FALSE	FALSE	FALSE	TRUE	TRUE	FALSE
+GO:0015949	nucleobase-containing small molecule int...	2	FALSE	FALSE	FALSE	TRUE	TRUE	FALSE
+GO:0006812	monoatomic cation transport	2	FALSE	TRUE	FALSE	TRUE	FALSE	FALSE
+GO:0015768	maltose transport	2	TRUE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0042956	maltodextrin transmembrane transport	2	TRUE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0009409	response to cold	2	TRUE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0052803	imidazole-containing compound metabolic ...	2	TRUE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0000105	histidine biosynthetic process	2	TRUE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0005978	glycogen biosynthetic process	2	TRUE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0009312	oligosaccharide biosynthetic process	2	TRUE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0006094	gluconeogenesis	2	FALSE	FALSE	FALSE	FALSE	TRUE	TRUE
+GO:0065008	regulation of biological quality	2	FALSE	FALSE	FALSE	FALSE	TRUE	TRUE
+GO:1901271	lipooligosaccharide biosynthetic process	2	FALSE	FALSE	FALSE	FALSE	TRUE	TRUE
+GO:0009247	glycolipid biosynthetic process	2	FALSE	FALSE	FALSE	FALSE	TRUE	TRUE
+GO:0016226	iron-sulfur cluster assembly	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0006790	sulfur compound metabolic process	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0006879	intracellular iron ion homeostasis	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0009242	colanic acid biosynthetic process	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0051674	localization of cell	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0000271	polysaccharide biosynthetic process	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0032508	DNA duplex unwinding	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0035672	oligopeptide transmembrane transport	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0051130	positive regulation of cellular componen...	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0071973	bacterial-type flagellum-dependent cell ...	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0006006	glucose metabolic process	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:1902047	polyamine transmembrane transport	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0051606	detection of stimulus	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0046496	nicotinamide nucleotide metabolic proces...	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0009267	cellular response to starvation	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0051128	regulation of cellular component organiz...	1	FALSE	FALSE	TRUE	FALSE	FALSE	FALSE
+GO:0006113	fermentation	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0019541	propionate metabolic process	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0043436	oxoacid metabolic process	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0022904	respiratory electron transport chain	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0017000	antibiotic biosynthetic process	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0033036	macromolecule localization	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0015944	formate oxidation	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0006195	purine nucleotide catabolic process	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:2001057	reactive nitrogen species metabolic proc...	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0007155	cell adhesion	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0044780	bacterial-type flagellum assembly	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0031669	cellular response to nutrient levels	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0032465	regulation of cytokinesis	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0009092	homoserine metabolic process	1	FALSE	FALSE	FALSE	TRUE	FALSE	FALSE
+GO:0006412	translation	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0000028	ribosomal small subunit assembly	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0000027	ribosomal large subunit assembly	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0009097	isoleucine biosynthetic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0009447	putrescine catabolic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0008652	amino acid biosynthetic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0015990	electron transport coupled proton transp...	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0006637	acyl-CoA metabolic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0009099	valine biosynthetic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0046185	aldehyde catabolic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0009078	pyruvate family amino acid metabolic pro...	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:1901607	alpha-amino acid biosynthetic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0045947	negative regulation of translational ini...	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0009098	leucine biosynthetic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0170040	proteinogenic amino acid catabolic proce...	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0170035	L-amino acid catabolic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:1990748	cellular detoxification	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0044282	small molecule catabolic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0009636	response to toxic substance	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0009450	gamma-aminobutyric acid catabolic proces...	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0046436	D-alanine metabolic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0034644	cellular response to UV	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0097164	ammonium ion metabolic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0034641	cellular nitrogen compound metabolic pro...	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0017148	negative regulation of translation	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0000162	tryptophan biosynthetic process	1	TRUE	FALSE	FALSE	FALSE	FALSE	FALSE
+GO:0050821	protein stabilization	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0033214	siderophore-dependent iron import into c...	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0051701	biological process involved in interacti...	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0009432	SOS response	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0009245	lipid A biosynthetic process	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0046677	response to antibiotic	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0010468	regulation of gene expression	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0007165	signal transduction	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0006207	'de novo' pyrimidine nucleobase biosynth...	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0006083	acetate metabolic process	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0010041	response to iron(III) ion	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0046349	amino sugar biosynthetic process	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0061077	chaperone-mediated protein folding	1	FALSE	FALSE	FALSE	FALSE	TRUE	FALSE
+GO:0051253	negative regulation of RNA metabolic pro...	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0042866	pyruvate biosynthetic process	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0006096	glycolytic process	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0006754	ATP biosynthetic process	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0019359	nicotinamide nucleotide biosynthetic pro...	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0006090	pyruvate metabolic process	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0009071	serine family amino acid catabolic proce...	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0042594	response to starvation	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0009250	glucan biosynthetic process	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0002098	tRNA wobble uridine modification	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0006415	translational termination	1	FALSE	FALSE	FALSE	FALSE	FALSE	TRUE
+GO:0034219	carbohydrate transmembrane transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0031460	glycine betaine transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0006820	monoatomic anion transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0009401	phosphoenolpyruvate-dependent sugar phos...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0071214	cellular response to abiotic stimulus	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0006836	neurotransmitter transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0097305	response to alcohol	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0006596	polyamine biosynthetic process	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0015757	galactose transmembrane transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0051085	chaperone cofactor-dependent protein ref...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0019579	aldaric acid catabolic process	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0019220	regulation of phosphate metabolic proces...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0032879	regulation of localization	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0033554	cellular response to stress	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0097237	cellular response to toxic substance	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0033499	galactose catabolic process via UDP-gala...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0015766	disaccharide transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0042940	D-amino acid transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0032101	regulation of response to external stimu...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:1902021	regulation of bacterial-type flagellum-d...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0070887	cellular response to chemical stimulus	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0046031	ADP metabolic process	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0006089	lactate metabolic process	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0044403	biological process involved in symbiotic...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0044248	cellular catabolic process	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0032774	RNA biosynthetic process	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0046835	carbohydrate phosphorylation	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0008645	hexose transmembrane transport	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0070301	cellular response to hydrogen peroxide	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0046487	glyoxylate metabolic process	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE
+GO:0051248	negative regulation of protein metabolic...	1	FALSE	TRUE	FALSE	FALSE	FALSE	FALSE

@@ -1,0 +1,46 @@
+GO.ID	term	number of genomes enriched	E. coli	S. typhimurium
+GO:0006812	monoatomic cation transport	2	TRUE	TRUE
+GO:0005991	trehalose metabolic process	2	TRUE	TRUE
+GO:0015794	glycerol-3-phosphate transmembrane trans...	2	TRUE	TRUE
+GO:0097237	cellular response to toxic substance	2	TRUE	TRUE
+GO:0031460	glycine betaine transport	2	TRUE	TRUE
+GO:0070301	cellular response to hydrogen peroxide	2	TRUE	TRUE
+GO:0098869	cellular oxidant detoxification	2	TRUE	TRUE
+GO:0097305	response to alcohol	2	TRUE	TRUE
+GO:0006972	hyperosmotic response	2	TRUE	TRUE
+GO:0071474	cellular hyperosmotic response	2	TRUE	TRUE
+GO:0009636	response to toxic substance	1	TRUE	FALSE
+GO:0044011	single-species biofilm formation on inan...	1	TRUE	FALSE
+GO:0008152	metabolic process	1	TRUE	FALSE
+GO:0006979	response to oxidative stress	1	TRUE	FALSE
+GO:0006527	arginine catabolic process	1	TRUE	FALSE
+GO:0006974	DNA damage response	1	TRUE	FALSE
+GO:1900231	regulation of single-species biofilm for...	1	TRUE	FALSE
+GO:0006553	lysine metabolic process	1	TRUE	FALSE
+GO:0009234	menaquinone biosynthetic process	1	TRUE	FALSE
+GO:0071236	cellular response to antibiotic	1	TRUE	FALSE
+GO:0005977	glycogen metabolic process	1	TRUE	FALSE
+GO:0009068	aspartate family amino acid catabolic pr...	1	TRUE	FALSE
+GO:0009436	glyoxylate catabolic process	1	TRUE	FALSE
+GO:0009450	gamma-aminobutyric acid catabolic proces...	1	TRUE	FALSE
+GO:0061077	chaperone-mediated protein folding	1	TRUE	FALSE
+GO:0051289	protein homotetramerization	1	TRUE	FALSE
+GO:0034614	cellular response to reactive oxygen spe...	1	TRUE	FALSE
+GO:0009268	response to pH	1	TRUE	FALSE
+GO:0006083	acetate metabolic process	1	TRUE	FALSE
+GO:1900191	negative regulation of single-species bi...	1	TRUE	FALSE
+GO:0051049	regulation of transport	1	TRUE	FALSE
+GO:0009065	glutamine family amino acid catabolic pr...	1	TRUE	FALSE
+GO:0042594	response to starvation	1	TRUE	FALSE
+GO:0006105	succinate metabolic process	1	TRUE	FALSE
+GO:0042450	arginine biosynthetic process via ornith...	1	TRUE	FALSE
+GO:1902201	negative regulation of bacterial-type fl...	1	TRUE	FALSE
+GO:0005978	glycogen biosynthetic process	1	FALSE	TRUE
+GO:0019645	anaerobic electron transport chain	1	FALSE	TRUE
+GO:0015766	disaccharide transport	1	FALSE	TRUE
+GO:0009251	glucan catabolic process	1	FALSE	TRUE
+GO:0006970	response to osmotic stress	1	FALSE	TRUE
+GO:0034219	carbohydrate transmembrane transport	1	FALSE	TRUE
+GO:0071214	cellular response to abiotic stimulus	1	FALSE	TRUE
+GO:0010447	response to acidic pH	1	FALSE	TRUE
+GO:0010876	lipid localization	1	FALSE	TRUE

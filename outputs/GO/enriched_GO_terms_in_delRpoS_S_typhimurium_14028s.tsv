@@ -1,0 +1,20 @@
+GO.ID	Term	Annotated	Significant	Expected	pval
+GO:0031460	glycine betaine transport	10	4	0.38	3.5e-4
+GO:0005978	glycogen biosynthetic process	5	3	0.19	5.1e-4
+GO:0019645	anaerobic electron transport chain	6	3	0.23	9.9e-4
+GO:0015766	disaccharide transport	6	3	0.23	9.9e-4
+GO:0009251	glucan catabolic process	7	3	0.27	0.00168
+GO:0006972	hyperosmotic response	14	5	0.53	0.00358
+GO:0006970	response to osmotic stress	32	8	1.22	0.00457
+GO:0097305	response to alcohol	5	2	0.19	0.01336
+GO:0015794	glycerol-3-phosphate transmembrane trans...	5	2	0.19	0.01336
+GO:0071474	cellular hyperosmotic response	5	2	0.19	0.01336
+GO:0005991	trehalose metabolic process	5	2	0.19	0.01336
+GO:0034219	carbohydrate transmembrane transport	55	4	2.1	0.01781
+GO:0097237	cellular response to toxic substance	24	5	0.92	0.01851
+GO:0006812	monoatomic cation transport	144	5	5.5	0.0193
+GO:0098869	cellular oxidant detoxification	17	3	0.65	0.02478
+GO:0071214	cellular response to abiotic stimulus	16	4	0.61	0.0257
+GO:0070301	cellular response to hydrogen peroxide	7	2	0.27	0.0267
+GO:0010447	response to acidic pH	8	2	0.31	0.03472
+GO:0010876	lipid localization	21	2	0.8	0.03807

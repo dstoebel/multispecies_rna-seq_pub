@@ -1,0 +1,29 @@
+GO.ID	Term	Annotated	Significant	Expected	pval
+GO:0006101	citrate metabolic process	14	10	2.71	3.2e-5
+GO:0006099	tricarboxylic acid cycle	14	10	2.71	3.2e-5
+GO:0000105	histidine biosynthetic process	8	6	1.55	0.001
+GO:0052803	imidazole-containing compound metabolic ...	8	6	1.55	0.001
+GO:0006546	glycine catabolic process	5	4	0.97	0.0059
+GO:0051253	negative regulation of RNA metabolic pro...	68	18	13.17	0.0071
+GO:0006970	response to osmotic stress	27	12	5.23	0.0084
+GO:0016999	antibiotic metabolic process	35	11	6.78	0.0136
+GO:0042866	pyruvate biosynthetic process	15	7	2.91	0.0148
+GO:0006096	glycolytic process	15	7	2.91	0.0148
+GO:0006754	ATP biosynthetic process	22	8	4.26	0.0149
+GO:0022900	electron transport chain	29	9	5.62	0.015
+GO:0006094	gluconeogenesis	9	5	1.74	0.0169
+GO:0019359	nicotinamide nucleotide biosynthetic pro...	23	8	4.46	0.0222
+GO:0006090	pyruvate metabolic process	28	13	5.42	0.0241
+GO:0009071	serine family amino acid catabolic proce...	9	7	1.74	0.0241
+GO:0042594	response to starvation	20	7	3.87	0.0245
+GO:0009250	glucan biosynthetic process	9	4	1.74	0.0247
+GO:0002098	tRNA wobble uridine modification	13	6	2.52	0.0293
+GO:0006415	translational termination	7	4	1.36	0.0296
+GO:0044011	single-species biofilm formation on inan...	7	4	1.36	0.0296
+GO:0006793	phosphorus metabolic process	277	56	53.66	0.0297
+GO:0065008	regulation of biological quality	80	23	15.5	0.0357
+GO:0009225	nucleotide-sugar metabolic process	8	4	1.55	0.0373
+GO:1901271	lipooligosaccharide biosynthetic process	12	4	2.32	0.0374
+GO:0009247	glycolipid biosynthetic process	12	4	2.32	0.0374
+GO:0009314	response to radiation	74	16	14.34	0.0427
+GO:0009061	anaerobic respiration	18	7	3.49	0.0431

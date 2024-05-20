@@ -1,0 +1,30 @@
+GO.ID	Term	Annotated	Significant	Expected	pval
+GO:0009061	anaerobic respiration	26	23	4.87	1.6e-14
+GO:0022900	electron transport chain	34	20	6.37	6.1e-7
+GO:0006101	citrate metabolic process	15	10	2.81	5.9e-5
+GO:0006099	tricarboxylic acid cycle	15	10	2.81	5.9e-5
+GO:0016999	antibiotic metabolic process	43	19	8.06	9.1e-5
+GO:0006113	fermentation	13	7	2.44	0.0047
+GO:0019541	propionate metabolic process	5	4	0.94	0.0052
+GO:0015685	ferric-enterobactin import into cell	5	4	0.94	0.0052
+GO:0044718	siderophore transmembrane transport	5	4	0.94	0.0052
+GO:0006097	glyoxylate cycle	5	4	0.94	0.0052
+GO:0043436	oxoacid metabolic process	335	68	62.78	0.0129
+GO:0097428	protein maturation by iron-sulfur cluste...	6	4	1.12	0.0133
+GO:0022904	respiratory electron transport chain	14	6	2.62	0.0223
+GO:0017000	antibiotic biosynthetic process	10	5	1.87	0.0224
+GO:0033036	macromolecule localization	65	12	12.18	0.0229
+GO:0015944	formate oxidation	7	4	1.31	0.0264
+GO:0042930	enterobactin transport	7	4	1.31	0.0264
+GO:0015949	nucleobase-containing small molecule int...	25	9	4.69	0.0312
+GO:0006195	purine nucleotide catabolic process	17	5	3.19	0.035
+GO:0051289	protein homotetramerization	30	10	5.62	0.0403
+GO:0040011	locomotion	49	13	9.18	0.0403
+GO:2001057	reactive nitrogen species metabolic proc...	8	4	1.5	0.0451
+GO:0007155	cell adhesion	8	4	1.5	0.0451
+GO:0044780	bacterial-type flagellum assembly	8	4	1.5	0.0451
+GO:0006812	monoatomic cation transport	141	29	26.42	0.0459
+GO:0031669	cellular response to nutrient levels	22	9	4.12	0.0475
+GO:0032465	regulation of cytokinesis	5	3	0.94	0.0485
+GO:0009092	homoserine metabolic process	5	3	0.94	0.0485
+GO:0015768	maltose transport	5	3	0.94	0.0485

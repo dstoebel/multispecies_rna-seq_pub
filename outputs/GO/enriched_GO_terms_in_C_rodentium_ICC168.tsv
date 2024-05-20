@@ -1,0 +1,38 @@
+GO.ID	Term	Annotated	Significant	Expected	pval
+GO:0009239	enterobactin biosynthetic process	7	7	1.38	1.1e-5
+GO:0016226	iron-sulfur cluster assembly	16	11	3.15	2.5e-5
+GO:0006790	sulfur compound metabolic process	86	21	16.91	8.1e-4
+GO:0051289	protein homotetramerization	30	13	5.9	0.00248
+GO:0006879	intracellular iron ion homeostasis	16	11	3.15	0.00261
+GO:0009242	colanic acid biosynthetic process	9	6	1.77	0.00274
+GO:0033212	iron import into cell	7	5	1.38	0.00426
+GO:0051674	localization of cell	25	11	4.92	0.00462
+GO:0005991	trehalose metabolic process	5	4	0.98	0.00624
+GO:0042930	enterobactin transport	5	4	0.98	0.00624
+GO:0051641	cellular localization	52	13	10.23	0.00754
+GO:0040011	locomotion	45	14	8.85	0.00764
+GO:0009252	peptidoglycan biosynthetic process	30	12	5.9	0.00786
+GO:0000271	polysaccharide biosynthetic process	61	18	12	0.00926
+GO:0006974	DNA damage response	183	46	35.99	0.01578
+GO:0044011	single-species biofilm formation on inan...	11	5	2.16	0.01582
+GO:0032508	DNA duplex unwinding	12	6	2.36	0.01761
+GO:0006972	hyperosmotic response	14	7	2.75	0.01783
+GO:0035672	oligopeptide transmembrane transport	9	5	1.77	0.01802
+GO:0034755	iron ion transmembrane transport	9	5	1.77	0.01802
+GO:0006979	response to oxidative stress	77	25	15.14	0.01849
+GO:0008360	regulation of cell shape	16	7	3.15	0.02397
+GO:0051130	positive regulation of cellular componen...	17	6	3.34	0.02574
+GO:0071973	bacterial-type flagellum-dependent cell ...	29	10	5.7	0.02713
+GO:0006970	response to osmotic stress	32	15	6.29	0.02867
+GO:0006006	glucose metabolic process	18	6	3.54	0.03048
+GO:1902047	polyamine transmembrane transport	12	6	2.36	0.03097
+GO:0051606	detection of stimulus	7	4	1.38	0.03123
+GO:0006793	phosphorus metabolic process	311	51	61.16	0.03514
+GO:0044036	cell wall macromolecule metabolic proces...	36	12	7.08	0.0365
+GO:0046496	nicotinamide nucleotide metabolic proces...	35	9	6.88	0.03851
+GO:0009267	cellular response to starvation	21	8	4.13	0.03858
+GO:0009225	nucleotide-sugar metabolic process	9	3	1.77	0.03867
+GO:0008152	metabolic process	1604	293	315.44	0.03886
+GO:0015718	monocarboxylic acid transport	14	6	2.75	0.04018
+GO:0009314	response to radiation	82	26	16.13	0.04094
+GO:0051128	regulation of cellular component organiz...	63	18	12.39	0.04933
