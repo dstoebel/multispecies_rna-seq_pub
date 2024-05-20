@@ -6,6 +6,8 @@ output: html_document
 ```{r}
 library(tidyverse)
 library(DESeq2)
+library("RColorBrewer")
+library(pheatmap)
 ```
 
 
@@ -368,13 +370,13 @@ So the three outlier samples are `E_JH07_0`, `E_JH05_0`, and `B_JH05_0`, which m
 
 
 ```{r}
-library("RColorBrewer")
+
 sampleDists <- dist(t(assay(all_vsd)))
 sampleDistMatrix <- as.matrix(sampleDists)
 #rownames(sampleDistMatrix) <- paste(all_vsd$condition, all_vsd$type, sep="-")
 colnames(sampleDistMatrix) <- NULL
 colors <- colorRampPalette( rev(brewer.pal(9, "Blues")) )(255)
-pheatmap::pheatmap(sampleDistMatrix,
+pheatmap(sampleDistMatrix,
          clustering_distance_rows=sampleDists,
          clustering_distance_cols=sampleDists,
          col=colors, 
