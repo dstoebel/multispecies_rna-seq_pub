@@ -1,5 +1,13 @@
 # multispecies_rna-seq
 
+## Outputs
+
+The directory `outputs` includes:
+- all of the figures used in the paper
+- all of the outputs of from DEseq (in `/sig_tables`)
+- all of the outputs of GO enrichment analysis (in `/GO`) 
+- a pdf of expression of the genes for each GO term that was enriched in at least one species (`all_enriched_plots.pdf`)
+
 ## Data analysis files
 
 ### Four files do the analysis of RNA-seq data that are the majority of the data. 
@@ -32,3 +40,5 @@
 ## Package managagement
 
 This project used `renv` to manage packages, so the directory `renv` and the file `renv.lock` will set those up.
+
+
