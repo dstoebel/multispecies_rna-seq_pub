@@ -171,7 +171,7 @@ genome_content_upset <- upset(
   width_ratio = 0.25,
   set_sizes = FALSE,
   sort_sets = FALSE,
-  base_annotations = list('Number of locus families\nin only this set of species' = intersection_size(text = aes(size = 3.5))),
+  base_annotations = list('Number of genes\nin only this set of species' = intersection_size(text = aes(size = 3.5))),
   labeller = format_species_names,
   themes = upset_modify_themes(list(
     'default' = theme(text=element_text(size = 12)),
