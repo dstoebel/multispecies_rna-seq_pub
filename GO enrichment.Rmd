@@ -771,57 +771,8 @@ rcsA
 
 ```
 
-### Enterobacter, Klebsiella, Serratia
-
-Below I explore for Serratia some of the unique GO terms. Plots make it look like none of these are particularly unique. 
 
 
-```{r}
-enriched_GO_overview |> 
-  filter(number_of_genomes == 1, S_marcescens_Db11 == 1)
-```
-```{r}
-plot_genes_from_GO(GO_term_to_plot = "GO:0006096", title = "")
-```
-
-
-
-
-
-
-
-
-
-```{r}
-plot_gene(ecoli_gene_name = "csrA")
-```
-
-https://ecocyc.org/gene?orgid=ECOLI&id=EG12092
-https://ecocyc.org/gene?orgid=ECOLI&id=EG10181
-
-
-
-
-Trehalose metabolism seems to be more conserved.
-
-```{r}
-plot_genes_from_GO("GO:0005991", "trehelose metabolic process")
-```
-
-Finally, this is a big term, but I notice that E. coli has more upregualted genes involved in amino acid metabolism:
-
-```{r}
-plot_genes_from_GO(GO_term_to_plot = "GO:1901607", title = "alpha-amino acid biosynthetic process")
-```
-These may have already been captured in the histadine biosynthesis plus some others.
-
-
-nucleic acid transport
-
-```{r}
-#plot_genes_from_GO(GO_term_to_plot = "GO:0050657", title = "nucleic acid transport")
-plot_gene(ecoli_gene_name = "sxy")
-```
 
 
 # Quality Control of eggNOG mapping
