@@ -256,10 +256,13 @@ upset(
         'Number of enriched GO terms'=intersection_size(text = aes(size = 2.5))
     ),
   labeller = format_species_names,
-  themes = upset_default_themes(
-    text = element_text(size = 10)
+     themes = upset_modify_themes(
+    list(
+            'default'=theme(axis.text.y = element_text(size = 12),
+                      axis.title.y = element_text(size = 14)),
+      'intersections_matrix'=theme(text = element_text(face = "italic", size = 14))))
 )
-)
+
 
 ggsave(filename = "outputs/GO_upset.png", width = 8, height= 5)
 ```
@@ -308,9 +311,10 @@ plot_genes_from_GO <- function(GO_term_to_plot, title) {
     theme(axis.text.x = element_text(angle = 90)) +
     geom_hline(yintercept = 0) +
     ggtitle(paste(GO_term_to_plot, gsub("_", " ", title),sep = "\n")) +
-    labs(y = "log2 fold change\n(15°C/37°C)") + 
+    labs(x = "Species", 
+         y = "log2 fold change\n(15°C/37°C)") + 
     theme_classic() +
-    theme(axis.text.x = element_text(face="italic")) +
+    theme(axis.text.x = element_text(face="italic", angle = 45, hjust = 1)) +
     scale_color_brewer(palette = "Dark2") 
 }
 
@@ -353,10 +357,11 @@ plot_gene_from_custom_set <- function(locus_family_of_interest, title = " ") {
       theme(axis.text.x = element_text(angle = 90)) +
       geom_hline(yintercept = 0) +
       ggtitle(title) +
-      labs(y = "log2 fold change (15°C/37°C)") +
+    labs(x = "Species", 
+         y = "log2 fold change\n(15°C/37°C)") + 
     theme_classic() +
-      theme(axis.text.x = element_text(face = "italic")) +
-      scale_color_brewer(palette = "Dark2")
+    theme(axis.text.x = element_text(face="italic", angle = 45, hjust = 1)) +
+    scale_color_brewer(palette = "Dark2") 
   }
 
 ```
@@ -452,8 +457,7 @@ GO:0009312	oligosaccharide biosynthetic process
 ### Plot GO terms related to iron that are enriched in at least two species
 
 ```{r}
-go_0009239 <- plot_genes_from_GO(GO_term_to_plot = "GO:0009239", title = "enterobactin biosynthetic process")
-
+go_0009239 <- plot_genes_from_GO(GO_term_to_plot = "GO:0009239", title = "enterobactin biosynthetic process") 
 
 go_0042930 <- plot_genes_from_GO(GO_term_to_plot = "GO:0042930", title = "enterobactin transport")
 
@@ -471,8 +475,8 @@ FeS cluster tranfer is up in the cold, perhaps consistent with cells having more
 Its interesting to look at these genes in the light of the activity of the regulator *fur*, which is a negative regulator of some of these genes E. coli. 
 
 ```{r}
-fur <- plot_wt_gene(ecoli_gene_name = "fur")
-hns <- plot_wt_gene(ecoli_gene_name = "hns")
+fur <- plot_wt_gene(ecoli_gene_name = "fur") 
+hns <- plot_wt_gene(ecoli_gene_name = "hns") 
 ```
 What I find interesting about this plot is that fur is very slightly temp regulated in E. coli and S. enterica, but there is big temperature regulation in the other species. 
 
@@ -486,8 +490,6 @@ What I find interesting about this plot is that fur is very slightly temp regula
   plot_annotation(tag_levels = 'A') &
   theme(plot.title = element_text(size = 10),
         axis.title = element_text(size = 10),
-        #        strip.text.x = element_text(size = 5),
-        #   strip.background = element_rect(linewidth = NA)
   )
   
 ggsave(filename = "outputs/iron_combined.png", height = 10, width = 10)
@@ -716,8 +718,7 @@ colanic_acid_custom_set <- c(colanic_acid_go_locus_fams, wca_locus_families)
 
 
 colanic_acid_custom_plot <- colanic_acid_custom_set |>
-  plot_gene_from_custom_set(title = "colanic acid associated genes") + theme(axis.text.x = element_text(angle = 0))
-
+  plot_gene_from_custom_set(title = "colanic acid associated genes") 
 
 
 ```

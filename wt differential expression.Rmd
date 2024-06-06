@@ -231,7 +231,11 @@ num_sig_genes_plot <- sig_genes_each_species |>
                                 palette = "Dark2") + 
   labs(x = "Species", 
        y = "Number of genes") +
-  theme(axis.text.x = element_text(face = "italic")
+  theme(axis.text.x = element_text(face = "italic", size = 11),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        legend.text = element_text(size = 12)
         )
 num_sig_genes_plot
 #We save this plot later together with an upset plot
@@ -276,15 +280,16 @@ sig_up_upset <- upset(
   min_size = 15,
   set_sizes = FALSE,
   base_annotations=list(
-        'Number of\nupregulated DE genes'=intersection_size(text = aes(size = 2.5)
+        'Number of\nupregulated DE genes'=intersection_size(text = aes(size = 3)
                                             )
     ),
   labeller = format_species_names,
   sort_sets = "FALSE",
   themes = upset_modify_themes(
     list(
-      text = element_text(size = 12),
-      'intersections_matrix'=theme(text = element_text(face = "italic"))
+      'default'=theme(axis.text.y = element_text(size = 12),
+                      axis.title.y = element_text(size = 14)),
+      'intersections_matrix'=theme(text = element_text(face = "italic", size = 14))
 )))
 
 # Set up the data for the upset plot of significant down genes, which requires a matrix of binary data
@@ -321,13 +326,14 @@ sig_down_upset <- upset(
   colnames(sig_down_for_upset),
   min_size = 15,
   set_sizes = FALSE,
-  base_annotations = list('Number of\ndownregulated DE genes' = intersection_size(text = aes(size = 2.5))),
+  base_annotations = list('Number of\ndownregulated DE genes' = intersection_size(text = aes(size = 3))),
   sort_sets = "FALSE",
   labeller = format_species_names,
   themes = upset_modify_themes(
     list(
-      text = element_text(size = 12),
-      'intersections_matrix'=theme(text = element_text(face = "italic"))))
+            'default'=theme(axis.text.y = element_text(size = 12),
+                      axis.title.y = element_text(size = 14)),
+      'intersections_matrix'=theme(text = element_text(face = "italic", size = 14))))
 )
 ```
 
