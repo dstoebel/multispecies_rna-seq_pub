@@ -342,7 +342,7 @@ plot_gene_from_custom_set <- function(locus_family_of_interest, title = " ") {
         species = fct_recode(
           species,
           `E. coli` = "E_coli_K12",
-          `S. typhimurium` = "S_typhimurium_14028s",
+          `S. enterica` = "S_typhimurium_14028s",
           `C. rodentium` = "C_rodentium_ICC168",
           `E. cloacae` = "E_cloacae_ATCC13047",
           `K. pneumoniae` = "K_pneumoniae_KPNIH1",
