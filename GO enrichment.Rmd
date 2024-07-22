@@ -264,7 +264,7 @@ upset(
 )
 
 
-ggsave(filename = "outputs/GO_upset.png", width = 8, height= 5)
+ggsave(filename = "outputs/fig7_GO_upset.tiff", width = 8, height= 5)
 ```
 
 
@@ -492,7 +492,7 @@ What I find interesting about this plot is that fur is very slightly temp regula
         axis.title = element_text(size = 10),
   )
   
-ggsave(filename = "outputs/iron_combined.png", height = 10, width = 10)
+ggsave(filename = "outputs/fig8_iron_combined.tiff", height = 10, width = 10)
 ```
 For what species are fur or hns DE?
 
@@ -605,7 +605,7 @@ tca_plot + glycine_plot + osmo_plot + biofilm_plot +  plot_layout(guides = 'coll
         #   strip.background = element_rect(linewidth = NA)
   )
 
-ggsave(filename = "outputs/misc_GO.png", height = (20/3), width = 10)
+ggsave(filename = "outputs/fig9_misc_GO.tiff", height = (20/3), width = 10)
 
 ```
 This is a heterogenous bunch, including otsBA (trehalose biosynthesis), lpxABCP (lipid A biosynthesis - lipid A is what anchors LPS to the membrane)
@@ -656,7 +656,7 @@ combined_ribosome_plot + elect_trans +
   )
   
 
-ggsave(filename = "outputs/ribosome_proton_transport.jpg", width = 7, height = 4)
+ggsave(filename = "outputs/fig10_ribosome_proton_transport.tiff", width = 7, height = 4)
 
 get_genes_from_GO(GO_term_to_inspect  = "GO:0015990") |> 
   filter(species == "E. coli", significant)
@@ -746,7 +746,7 @@ colanic_acid_custom_plot / rcsA + rcsB +#  / rcsC / rcsD +
         #   strip.background = element_rect(linewidth = NA)
   )
 
-ggsave(filename = "outputs/colanic_acid.png", height = 7, width = 7.5)
+ggsave(filename = "outputs/fig11_colanic_acid.tiff", height = 7, width = 7.5)
 
 
 ##Info on rcs genes

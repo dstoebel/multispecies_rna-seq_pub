@@ -93,7 +93,7 @@ tibble(species, status_other_species, n) |>
         legend.position = "top") +
   coord_flip()
 
-ggsave("outputs/delRpoS_genes.png", width = 6, height = 3)
+ggsave("outputs/fig12_delRpoS_genes.tiff", width = 6, height = 3)
 
 ```
 
