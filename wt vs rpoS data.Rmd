@@ -97,6 +97,36 @@ ggsave("outputs/fig12_delRpoS_genes.tiff", width = 6, height = 3)
 
 ```
 
+### Trying the above analysis with a fold change of 1.5 rather than 2.
+```{r}
+locus_fam_sig_at_15C_less_stringent <- wt_vs_rpoS_15_significance |> 
+  bind_rows() |> 
+  mutate(significant = abs(log2FoldChange) >log2(1.5) & padj < 0.01) |> 
+  filter(significant) |> 
+  pull(locus_family) |> 
+  unique()
+
+
+DE_each_species_table_less_stringent <- wt_vs_rpoS_15_significance |>
+  bind_rows() |>
+    mutate(significant = abs(log2FoldChange) >log2(1.5) & padj < 0.01) |> 
+  filter(locus_family %in% locus_fam_sig_at_15C_less_stringent) |>
+  mutate(significant = replace(significant, is.na(significant), FALSE)) |>
+  dplyr::select(locus_family, significant, species) |> 
+  pivot_wider(names_from = species, values_from = significant) |>
+  group_by(E_coli_K12, S_typhimurium_14028s) |>
+  tally()
+
+DE_each_species_table_less_stringent
+DE_each_species_table 
+
+
+
+```
+
+
+
+
 
 ### Break down similarlity of up-regulated regulons and down-regulated regulons
 
