@@ -215,6 +215,7 @@ So my observation here is that while E. coli has very large regulon in the cold,
 
 ```{r}
 num_sig_genes_plot <- sig_genes_each_species |> 
+  filter(sig_direction != "Not Sig") |> 
   mutate(    species = format_species_names(species),
                  species = fct_relevel(
       species,
