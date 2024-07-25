@@ -300,7 +300,10 @@ plot_genes_from_GO <- function(GO_term_to_plot, title) {
       species = factor(species,
                        levels = names(species_labels)),
       species = fct_relabel(species, format_species_names),
-      significant = replace(significant, is.na(significant), FALSE)
+      significant = case_when(significant ~ "DE",
+                              !significant ~ "Not DE", 
+                              is.na(significant) ~ "Not DE",
+                              TRUE ~ NA_character_)
     ) |>
     filter(!is.na(log2FoldChange))
   
@@ -312,7 +315,8 @@ plot_genes_from_GO <- function(GO_term_to_plot, title) {
     geom_hline(yintercept = 0) +
     ggtitle(paste(GO_term_to_plot, gsub("_", " ", title),sep = "\n")) +
     labs(x = "Species", 
-         y = "log2 fold change\n(15°C/37°C)") + 
+         y = "log2 fold change\n(15°C/37°C)",
+         color = NULL) + 
     theme_classic() +
     theme(axis.text.x = element_text(face="italic", angle = 45, hjust = 1)) +
     scale_color_brewer(palette = "Dark2") 
@@ -349,7 +353,10 @@ plot_gene_from_custom_set <- function(locus_family_of_interest, title = " ") {
           `S. marcescens` = "S_marcescens_Db11"
           
         ),
-        significant = replace(significant, is.na(significant), FALSE)
+      significant = case_when(significant ~ "DE",
+                              !significant ~ "Not DE", 
+                              is.na(significant) ~ "Not DE",
+                              TRUE ~ NA_character_)
       ) |>
       ggplot(aes(x = species, y = log2FoldChange)) +
       geom_violin() +
@@ -358,7 +365,8 @@ plot_gene_from_custom_set <- function(locus_family_of_interest, title = " ") {
       geom_hline(yintercept = 0) +
       ggtitle(title) +
     labs(x = "Species", 
-         y = "log2 fold change\n(15°C/37°C)") + 
+         y = "log2 fold change\n(15°C/37°C)",
+         color = NULL) + 
     theme_classic() +
     theme(axis.text.x = element_text(face="italic", angle = 45, hjust = 1)) +
     scale_color_brewer(palette = "Dark2") 
@@ -457,7 +465,7 @@ GO:0009312	oligosaccharide biosynthetic process
 ### Plot GO terms related to iron that are enriched in at least two species
 
 ```{r}
-go_0009239 <- plot_genes_from_GO(GO_term_to_plot = "GO:0009239", title = "enterobactin biosynthetic process") 
+go_0009239 <- plot_genes_from_GO(GO_term_to_plot = "GO:0009239", title = "enterobactin biosynthetic process")
 
 go_0042930 <- plot_genes_from_GO(GO_term_to_plot = "GO:0042930", title = "enterobactin transport")
 
@@ -590,12 +598,23 @@ These include lipid A biosynthesis, otsAB,
 
 
 
+### GO:0009409 response to cold
+```{r}
+cold_plot <- plot_genes_from_GO("GO:0009409", "response to cold")
+
+cold_plot
+
+```
+
+
+
+
 
 
 ### Create combined plot of misc conserved terms
 
 ```{r}
-tca_plot + glycine_plot + osmo_plot + biofilm_plot +  plot_layout(guides = 'collect',
+tca_plot + glycine_plot + biofilm_plot + cold_plot + plot_layout(guides = 'collect',
               axes = "collect",
               axis_titles = "collect") +
   plot_annotation(tag_levels = 'A') &
@@ -608,8 +627,16 @@ tca_plot + glycine_plot + osmo_plot + biofilm_plot +  plot_layout(guides = 'coll
 ggsave(filename = "outputs/fig9_misc_GO.tiff", height = (20/3), width = 10)
 
 ```
-This is a heterogenous bunch, including otsBA (trehalose biosynthesis), lpxABCP (lipid A biosynthesis - lipid A is what anchors LPS to the membrane)
+This is a heterogeneous bunch, including otsBA (trehalose biosynthesis), lpxABCP (lipid A biosynthesis - lipid A is what anchors LPS to the membrane)
 Many of the genes involved in LPS are annotaed for response to oxidative stress, antibiotic biosynthesis, and oligosaccaride. 
+
+
+```{r}
+
+```
+
+
+
 
 
 ## Species-specific responses
