@@ -5,8 +5,13 @@
 The directory `outputs` includes:
 - all of the figures used in the paper
 - all of the outputs of from DEseq (in `/sig_tables`)
+    - files of the form `{species name genotype}\_significance\_of\_temp` compare 37°C vs 15°C samples of that strain
+    - files of the form `{species name temperature}\_significance\_of\_genotype` compare wt vs ∆rpoS samples of that species at that temperature.
 - all of the outputs of GO enrichment analysis (in `/GO`) 
+    - files of the form `enriched\_GO\_terms\_in\_{strain}` are the results of the GO enrichment of the DE genes between 37°C and 15°C in that strain.
+    - files of the form `{strain}\_GO\_terms\_for\_topGO` are intermediate files used by data processing but may not be useful for others
 - a pdf of expression of the genes for each GO term that was enriched in at least one species (`all_enriched_plots.pdf`)
+- The growth rate parameters estimated for each strain, which appear in Table 1 in the paper.
 
 ## Data analysis files
 
