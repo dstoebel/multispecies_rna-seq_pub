@@ -80,11 +80,13 @@ species <- c("E. coli", "E. coli", "E. coli", "S. enterica", "S. enterica", "S. 
 status_other_species <- c("Present, not DE", "DE", "Not present", "Present, not DE", "DE", "Not present")
 n <- c(99, 83, 50, 49, 83, 57)
 
+rev_scale <- rev(RColorBrewer::brewer.pal(3, "Dark2"))
+
 tibble(species, status_other_species, n) |>
-  mutate(status_other_species = fct_rev(status_other_species)) |>
+  mutate(status_other_species = fct_relevel(status_other_species,  c("Not present", "Present, not DE","DE"))) |>
   ggplot() +
   geom_col(aes(x = species, y = n, fill = status_other_species)) +
-  scale_fill_brewer(palette = "Dark2",
+  scale_fill_manual(values = rev_scale,
                     guide = guide_legend(reverse = TRUE)) +
   labs(x = "Species",
        y = "Number of genes",
