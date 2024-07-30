@@ -163,7 +163,7 @@ rpoS_up_plot <- tibble(species, status_other_species, n_up) |>
   ggplot() +
   geom_col(aes(x = species, y = n_up, fill = status_other_species)) +
   scale_fill_brewer(palette = "Dark2",
-                    guide = guide_legend(reverse = TRUE)) +
+                    guide = guide_legend(reverse = FALSE)) +
   labs(x = "Species",
        y = "Number of genes",
        fill = "Status in the\nother species") +
