@@ -438,7 +438,11 @@ all_wt_sig_flat <-bind_rows(all_wt_significance) |>
      set_names() |>
      map(\(x) run_DESeq_single_contrast(species_to_use = x, genotype_to_use = c("wt", "rpoS"), temp_to_use = "15C",  variable_to_test = "genotype"))
 
+## Create a data set of all samples from all species.
+## This data set is then normalized together and used for plotting individual genes, 
+## which makes the individual gene expression levels comperable across the species.
    
+      
 all_dds <-
   DESeqDataSetFromMatrix(
     countData = column_to_rownames(counts_by_xenoGI_num_wide, "locus_family"),
@@ -487,7 +491,7 @@ merged_data <-
 
 
 
-
+## Create helper functions for plotting expression od individual genes
 
 
 
