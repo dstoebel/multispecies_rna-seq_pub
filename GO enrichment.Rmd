@@ -465,7 +465,9 @@ GO:0009312	oligosaccharide biosynthetic process
 ### Plot GO terms related to iron that are enriched in at least two species
 
 ```{r}
-go_0009239 <- plot_genes_from_GO(GO_term_to_plot = "GO:0009239", title = "enterobactin biosynthetic process")
+go_0009239 <- plot_genes_from_GO(GO_term_to_plot = "GO:0009239", title = "enterobactin biosynthetic process") + theme(text = element_text(size = 8),
+                                                                                                                      title = element_text(size = 8),
+                                                                                                                      labs = element_text(size = 8))
 
 go_0042930 <- plot_genes_from_GO(GO_term_to_plot = "GO:0042930", title = "enterobactin transport")
 
@@ -496,11 +498,12 @@ What I find interesting about this plot is that fur is very slightly temp regula
               axis_titles = "collect",
               heights = c(4,1,1)) +
   plot_annotation(tag_levels = 'A') &
-  theme(plot.title = element_text(size = 10),
-        axis.title = element_text(size = 10),
+  theme(text = element_text(size = 8),
+        plot.title = element_text(size = 8),
+        axis.title = element_text(size = 8),
   )
-  
-ggsave(filename = "outputs/fig8_iron_combined.tiff", height = 10, width = 10)
+
+ggsave(filename = "outputs/fig8_iron_combined.tiff", height = 7.5, width = 7.5)
 ```
 For what species are fur or hns DE?
 
