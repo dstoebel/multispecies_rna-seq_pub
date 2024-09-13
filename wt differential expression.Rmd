@@ -185,7 +185,7 @@ genome_content_combined <- wrap_plots(total_genes_plot , genome_content_upset, n
 
 genome_content_combined
 
-ggsave(filename = "outputs/fig1_upset_all_genes.tiff", plot = genome_content_combined, width = 10, height = 5)
+ggsave(filename = "outputs/fig1_upset_all_genes.tiff", plot = genome_content_combined, width = 10, height = 5, compression = "lzw")
 
 
 ```
@@ -241,7 +241,7 @@ pca <-  pcaData |>
 scale_color_brewer(palette = "Dark2") 
 
 pca
-#ggsave(filename = "outputs/fig6_pca.tiff", width = 7.5, height = 5)
+#ggsave(filename = "outputs/fig6_pca.tiff", width = 7.5, height = 5, compression = "lzw")
 ```
 
 
@@ -1056,14 +1056,28 @@ b <- node_significance |>
      theme(legend.position = "top")
 
 
-p + b +
+phylo + b +
   plot_annotation(tag_levels = "A") +
   plot_layout(widths = c(1, 1.45))
 
-ggsave("outputs/fig5_phylo_with_shared_DE.tiff", width = 7, height = 5)
+ggsave("outputs/fig5_phylo_with_shared_DE.tiff", width = 7, height = 5, compression = "lzw")
 
 ```
 
 What I see for each node is that most DE genes are DE in only a single genome.
 
+
+```{r}
+species_spec_obs_exp_plot /
+  core_obs_exp_plot +
+  plot_annotation(tag_levels = "A")
+
+wrap_plots(core_sig_up_upset, core_sig_down_upset, nrow = 1, ncol = 2) + plot_annotation(tag_levels = list(c("A", " ", "B", "")))
+
+
+phylo + b +
+  plot_annotation(tag_levels = "A") +
+  plot_layout(widths = c(1, 1.45))
+
+```
 
