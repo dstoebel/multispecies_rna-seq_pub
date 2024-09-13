@@ -595,17 +595,17 @@ species_spec_obs_exp_plot <- species_spec_obs_exp |>
   ggplot() +
   geom_col(aes(x = species, y = observed), fill = "lightgray", width = .8) +
   geom_col(aes(x = species,  y = expected), fill = "white", col = "black", alpha = 0, width = .8, lty = 2) +
-  annotate(geom = "text", x = 1.6, y = 290, label = "observed", color = "darkgray") +
-  annotate(geom = "text", x = .8, y = 290, label = "expected", color = "black" ) + 
-  annotate(geom = "segment", x= .8, xend = .9, y = 280, yend = 260 , lty = 2, color = "black") +
-  annotate(geom = "segment", x = 1.6, xend = 1.2, y = 280, yend = 205, color = "lightgray") +
+  annotate(geom = "text", x = 1.6, y = 270, label = "observed", color = "darkgray", size = 3) +
+  annotate(geom = "text", x = 1, y = 290, label = "expected", color = "black", size = 3) + 
+   annotate(geom = "segment", x = 1.6, xend = 1.2, y = 260, yend = 205, color = "lightgray") +
+   annotate(geom = "segment", x= 1, xend = .9, y = 280, yend = 260 , lty = 2, color = "black") +
   #  geom_text(aes(x = 1.6, y = 290, label = "observed"), color = "darkgray") +
   #  geom_text(aes(x = .8, y = 290, label = "expected"), ) + 
   # geom_segment(aes(x= .8, xend = .9, y = 280, yend = 260 ), lty = 2) +
   # geom_segment(aes(x = 1.6, xend = 1.2, y = 280, yend = 205), color = "lightgray") +
   labs(x = "Species",
        y = "Species-specific genes\ndiffernetially expressed") +
-  theme(axis.text.x = element_text(face = "italic")
+  theme(axis.text.x = element_text(face = "italic", angle = 45, hjust = 1)
         ) 
 
 species_spec_obs_exp_plot
@@ -692,8 +692,9 @@ core_obs_exp_plot <- core_obs_exp |>
   # geom_text(aes(x = 1.75, y = 481, label = "expected"), ) +
   labs(x = "Species",
        y = "Core genes\ndifferentially expressed") +
-  theme(axis.text.x = element_text(face = "italic")
+  theme(axis.text.x = element_text(face = "italic", angle = 45, hjust = 1)
         ) 
+
 ```
 
 Combine the two observed vs expected plots
@@ -1072,13 +1073,13 @@ node_significance <- prop_sig_each_node |>
   tally()
 
   
-b <- node_significance |> 
+sig_species_each_node <- node_significance |> 
     ggplot() +
   geom_col(aes(y = node_num, x = n, fill = num_sig), color = "black") +
   scale_fill_brewer(palette = "Dark2") +
   labs(fill = "Number species in which\na given gene is DE",
        x = "Number of genes", y = "node") +
-     theme(legend.position = "top")
+     theme(legend.position = "bottom")
 
 
 phylo + b +
@@ -1103,6 +1104,11 @@ wrap_plots(core_sig_up_upset, core_sig_down_upset, nrow = 1, ncol = 2) + plot_an
 phylo + b +
   plot_annotation(tag_levels = "A") +
   plot_layout(widths = c(1, 1.45))
+
+
+(species_spec_obs_exp_plot | core_obs_exp_plot) / (core_sig_up_upset | core_sig_down_upset) / (sig_species_each_node + inset_element(phylo, left = .5, right = 1, top = 1, bottom = .3)) +  plot_annotation(tag_levels = list(c("A", "B", "C", "", "D", "", "E")))
+
+ggsave("outputs/fig345.tiff", width = 8, height = 12, compression = "lzw")
 
 ```
 
