@@ -1,0 +1,1108 @@
+---
+title: "Combined analysis"
+author: "Dan Stoebel"
+output: html_document
+---
+The goal of this file is to do all of the analysis on the multispecies
+data set.
+
+
+```{r message=FALSE}
+conflictRules("maps", exclude = "map") #The package maps is loaded by gieger, but I don't use that map function. I do however use map in purrr
+library(tidyverse)
+library(furrr)
+library(DESeq2)
+library(patchwork)
+library(ComplexUpset)
+library(infer)
+library(ape)
+library(phytools)
+library(phangorn)
+library(geiger)
+library(ggtree)
+
+theme_set(theme_classic())
+```
+
+
+
+```{r message=FALSE}
+if(!file.exists("basic_analysis.RData")) {
+  source("basic_analysis.R")
+  tools::md5sum("basic_analysis.RData")
+} else if (tools::md5sum("basic_analysis.RData") == "c8a2afac305759229b7085cfc279a4af") {
+  load("basic_analysis.RData")
+  print("basic_analysis.RData loaded")
+} else{
+  source("basic_analysis.R")
+  print("basic_analysis.R run")
+  tools::md5sum("basic_analysis.RData")
+}
+```
+
+
+# Create a function that will be useful for other steps
+
+
+### Useful for plotting:
+```{r}
+
+
+format_species_names <- function(name){
+  case_when(name == "E_coli_K12" ~ "E. coli",
+            name == "S_typhimurium_14028s" ~ "S. enterica",
+            name == "C_rodentium_ICC168" ~ "C. rodentium",
+            name == "E_cloacae_ATCC13047" ~ "E. cloacae",
+            name == "K_pneumoniae_KPNIH1" ~ "K. pneumoniae",
+            name == "S_marcescens_Db11" ~ "S. marcescens",
+            TRUE ~ name)
+}
+```
+
+
+
+# Analysis of genome content
+
+### How many genes total are there in each genome?
+
+```{r}
+total_genes_each_species <- all_wt_sig_flat |> 
+  dplyr::count(species)
+  
+
+
+total_genes_each_species
+  
+
+
+```
+### Simple plot of the number of genes in each genome
+
+```{r}
+total_genes_plot <- total_genes_each_species |> 
+  mutate(
+    species = format_species_names(species),
+    species = fct_relevel(
+      species,
+      "E. coli",
+      "S. enterica",
+      "C. rodentium",
+      "E. cloacae",
+      "K. pneumoniae",
+      "S. marcescens"
+    )) |> 
+  ggplot(aes(x = species, y = n)) +
+  geom_col() +
+  labs(x = "Species", 
+       y = "Number of genes") +
+  theme(axis.text.x = element_text(face = "italic", angle = 45, hjust = 1)
+        )
+  
+total_genes_plot
+
+```
+
+### How many core genes are there, what are they, and what percentage of genes in each genome are core??
+
+```{r}
+all_wt_sig_flat |> 
+  dplyr::count(locus_family) |> 
+  dplyr::count(n)  |> 
+  dplyr::rename("number of genomes" = n,
+                "number of genes found in this many genomes" = nn) 
+
+##There are 1838 core genes
+
+core_locus_families <- all_wt_sig_flat |> 
+  dplyr::count(locus_family) |> 
+  filter(n == 6) |> 
+  pull(locus_family)
+
+
+
+total_genes_each_species |> 
+  mutate(pct_core = 100*1838/n)
+```
+
+### How many species specific genes?
+```{r}
+unique_locus_fam <- all_wt_sig_flat |> 
+  dplyr::count(locus_family) |> 
+  filter(n == 1) |> 
+  pull(locus_family)
+
+all_wt_sig_flat |> 
+  filter(locus_family %in% unique_locus_fam) |> 
+  dplyr::count(species) |> 
+  left_join(total_genes_each_species, join_by(species), suffix = c("_unique", "_total")) |> 
+  mutate("percent of genes that are species-specific" = round(100*n_unique/n_total,1))
+
+
+
+```
+
+
+
+
+### Upset plot of all genes
+
+So we can see that each species has its own genes that are specific to its gene expression pattern. Is this just because each genome is different? Let's calculate the number of shared genes between sets of genomes. 
+
+
+```{r}
+comparison_of_present_genes <- all_wt_sig_flat |>
+  mutate(present = TRUE) |>
+  pivot_wider(
+    id_cols = locus_family,
+    names_from = species,
+    values_from = present,
+    values_fill = FALSE
+  )
+
+
+present_for_upset <- comparison_of_present_genes |> 
+  dplyr::select(-locus_family) |> 
+  filter(if_any(everything(), \(x) (x == TRUE))) 
+
+genome_content_upset <- upset(
+  data = present_for_upset,
+  intersect = rev(names(species_labels)),
+  min_size = 50,
+  width_ratio = 0.25,
+  set_sizes = FALSE,
+  sort_sets = FALSE,
+  base_annotations = list('Number of genes\nin only this set of species' = intersection_size(text = aes(size = 2))),
+  labeller = format_species_names,
+  themes = upset_modify_themes(list(
+    'default' = theme(text=element_text(size = 12)),
+    `Intersection size` = theme(text= element_text(size = 5)),
+    'intersections_matrix'=theme(text=element_text(face = 'italic'))
+)))
+
+genome_content_upset
+```
+
+
+### Load phylogeny of these species
+
+```{r}
+
+tree <- ape::read.tree(file = "trees/enterics.tre")
+
+tree$tip.label <- format_species_names(tree$tip.label)
+
+
+phylo <- ggtree(tree) +
+  geom_tiplab(fontface = 3) +
+  ggplot2::xlim(0, 18) 
+
+phylo
+```
+
+
+```{r}
+
+genome_content_combined <- ((phylo / total_genes_plot) |
+                              genome_content_upset) + 
+  plot_annotation(tag_levels = list(c("A", "B", "C"))) +
+  plot_layout(widths = c(1, 2))
+
+genome_content_combined
+
+ggsave(filename = "outputs/fig1_upset_all_genes.tiff", plot = genome_content_combined, width = 7, height = 7, compression = "lzw")
+
+
+
+```
+
+# Analysis of differnetial expression in wild-type strains
+
+### PCA as quality control 
+(Also to look at conservation of expression pattern.)
+
+I want to work only with wild-type samples, and only with the core genome. 
+If we use the whole genome, than the species specific genes swamp the whole PCA, and the 37°C and 15°C samples are right on top of each other.
+
+```{r}
+counts_by_xenoGI_conserved_wide <- counts_by_xenoGI_num_wide |> 
+  filter(locus_family %in% core_locus_families) |> 
+  dplyr::select(locus_family, contains("wt"))
+
+sample_wt <- sample_table |> 
+  filter(genotype == "wt")
+
+all_dds_conserved <-
+  DESeqDataSetFromMatrix(
+    countData = column_to_rownames(counts_by_xenoGI_conserved_wide, "locus_family"),
+    colData = sample_wt,
+    design = ~ condition
+  ) |>
+  DESeq()
+
+all_vsd <- vst(all_dds_conserved)
+
+#plotPCA(all_vsd, intgroup = c("temp", "species"))
+
+pcaData <- plotPCA(all_vsd, intgroup=c("temp", "species", "genotype"), returnData=TRUE, ntop = 1900) 
+
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+
+
+pca <-  pcaData |>
+  mutate(
+    species = factor(species,
+                     levels = names(species_labels)),
+    species = fct_relabel(species, format_species_names),
+    temperature = str_replace(temp, "C", "°C")
+  ) |>
+  ggplot(aes(PC1, PC2, color = species, shape = temperature)) +
+  geom_point(size = 4, alpha = .7) +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+  coord_fixed() +
+  theme_classic() +
+  theme(legend.text = element_text(face = "italic"),
+        legend.position = "bottom") +
+scale_color_brewer(palette = "Dark2") 
+
+pca
+#ggsave(filename = "outputs/fig6_pca.tiff", width = 7.5, height = 5, compression = "lzw")
+```
+
+
+### How many genes are DE in each genome?
+
+```{r}
+sig_genes_each_species <- all_wt_sig_flat |> 
+   mutate(sig_direction = case_when(significant & (log2FoldChange < 0) ~ "Sig Down",
+                                    significant & (log2FoldChange > 0) ~ "Sig Up",
+                                    TRUE ~ "Not Sig"))  |> 
+  dplyr::count(species, sig_direction)
+  
+sig_genes_each_species
+
+##What if we just consider significant, regardless of up or down?
+
+all_wt_sig_flat |> 
+  mutate(significant = replace(significant, is.na(significant), FALSE)) |> 
+  dplyr::count(species, significant)
+
+```
+So my observation here is that while E. coli has very large regulon in the cold, the number of DE genes is only 60% of that for Klebsiella or Seratia. DE genes are a mix of up and down regulated.
+
+
+```{r}
+num_sig_genes_plot <- sig_genes_each_species |> 
+  filter(sig_direction != "Not Sig") |> 
+  mutate(    species = format_species_names(species),
+                 species = fct_relevel(
+      species,
+      "E. coli",
+      "S. enterica",
+      "C. rodentium",
+      "E. cloacae",
+      "K. pneumoniae",
+      "S. marcescens"
+    )) |> 
+  ggplot(aes(x = species, y = n)) +
+    geom_col(aes(fill = sig_direction)) +
+  scale_fill_brewer(name = "",
+                                palette = "Dark2") + 
+  labs(x = "Species", 
+       y = "Number of genes") +
+  theme(axis.text.x = element_text(face = "italic", size = 11),
+        axis.text.y = element_text(size = 12),
+        axis.title.x = element_text(size = 14),
+        axis.title.y = element_text(size = 14),
+        legend.text = element_text(size = 12)
+        )
+num_sig_genes_plot
+#We save this plot later together with an upset plot
+```
+
+## Upset plot of all DE genes
+I would like to create an upset plot of DE genes to see how well expression patterns are conserved.
+Conserved means that the genes is significantly DE *in the same direction* (e.g. up or down) in a group of species.
+
+```{r}
+# Set up the data for the upset plot of significant up genes, which requires a matrix of binary data
+
+comparison_of_sig_up_genes <- all_wt_sig_flat |> 
+  mutate(sig_up = case_when(significant & (log2FoldChange > 0) ~ TRUE,
+                            TRUE ~ FALSE)) |> 
+    pivot_wider(
+    id_cols = locus_family,
+    names_from = species,
+    values_from = sig_up,
+    values_fill = FALSE
+  )
+
+# Get the order of things right
+
+sig_up_for_upset <- comparison_of_sig_up_genes |>
+  dplyr::select(-locus_family) |>
+  relocate(
+    S_marcescens_Db11,
+    K_pneumoniae_KPNIH1,
+    E_cloacae_ATCC13047,
+    C_rodentium_ICC168,
+    S_typhimurium_14028s,
+    E_coli_K12
+  ) |>
+  filter(if_any(everything(), \(x) (x == TRUE))) 
+  
+# Create the upset plot
+
+sig_up_upset <- upset(
+  sig_up_for_upset,
+  colnames(sig_up_for_upset),
+  min_size = 15,
+  set_sizes = FALSE,
+  base_annotations=list(
+        'Number of\nupregulated DE genes'=intersection_size(text = aes(size = 3)
+                                            )
+    ),
+  labeller = format_species_names,
+  sort_sets = "FALSE",
+  themes = upset_modify_themes(
+    list(
+      'default'=theme(axis.text.y = element_text(size = 12),
+                      axis.title.y = element_text(size = 14)),
+      'intersections_matrix'=theme(text = element_text(face = "italic", size = 14))
+)))
+
+# Set up the data for the upset plot of significant down genes, which requires a matrix of binary data
+
+
+comparison_of_sig_down_genes <- all_wt_sig_flat |> 
+  mutate(sig_down = case_when(significant & (log2FoldChange < 0) ~ TRUE,
+                            TRUE ~ FALSE)) |> 
+    pivot_wider(
+    id_cols = locus_family,
+    names_from = species,
+    values_from = sig_down,
+    values_fill = FALSE
+  )
+
+# Get the order of things right
+
+sig_down_for_upset <- comparison_of_sig_down_genes |>
+  dplyr::select(-locus_family) |>
+  relocate(
+    S_marcescens_Db11,
+    K_pneumoniae_KPNIH1,
+    E_cloacae_ATCC13047,
+    C_rodentium_ICC168,
+    S_typhimurium_14028s,
+    E_coli_K12
+  ) |>
+  filter(if_any(everything(), \(x) (x == TRUE)))
+
+# Create the upset plot
+
+sig_down_upset <- upset(
+  sig_down_for_upset,
+  colnames(sig_down_for_upset),
+  min_size = 15,
+  set_sizes = FALSE,
+  base_annotations = list('Number of\ndownregulated DE genes' = intersection_size(text = aes(size = 3))),
+  sort_sets = "FALSE",
+  labeller = format_species_names,
+  themes = upset_modify_themes(
+    list(
+            'default'=theme(axis.text.y = element_text(size = 12),
+                      axis.title.y = element_text(size = 14)),
+      'intersections_matrix'=theme(text = element_text(face = "italic", size = 14))))
+)
+```
+
+
+Combine the upset plot of DE genes with the earlier plot of number of DE genes to create a final figure for the paper.
+
+```{r}
+up_down_plot <- sig_up_upset | sig_down_upset 
+
+wrap_plots(pca, num_sig_genes_plot , up_down_plot, nrow = 3, ncol = 1, heights = c(2,1,2)) + plot_annotation(tag_levels = list(c("A","B","C", " ", "D", " ")))
+
+ggsave("outputs/fig2_PCA_up_and_down_DE.tiff", width = 12, height = 15, compression = "lzw")
+
+
+```
+
+
+
+### How many genes are DE in the same direction in all six species, and what are they?
+
+```{r}
+all_up_locus_fams <- all_wt_sig_flat |> 
+  mutate(sig_up = case_when(significant & (log2FoldChange > 0) ~ TRUE,
+                            TRUE ~ FALSE)) |> 
+  group_by(locus_family) |> 
+  summarise(num_up = sum(sig_up)) |> 
+  filter(num_up == 6) |> 
+  left_join(locus_fam_ecoli_names)
+
+
+
+all_down_locus_fams <- all_wt_sig_flat |> 
+  mutate(sig_up = case_when(significant & (log2FoldChange < 0) ~ TRUE,
+                            TRUE ~ FALSE)) |> 
+  group_by(locus_family) |> 
+  summarise(num_up = sum(sig_up)) |> 
+  filter(num_up == 6) |> 
+  left_join(locus_fam_ecoli_names)
+
+all_up_locus_fams
+all_down_locus_fams
+
+
+```
+
+
+```{r}
+# all_wt_sig_flat |> 
+#   mutate(significant = replace(significant, is.na(significant), FALSE)) |> 
+#   pivot_wider(
+#     id_cols = locus_family,
+#     names_from = species,
+#     values_from = significant,
+#     values_fill = FALSE
+#   ) |> 
+#   rowwise() |> 
+#   mutate(total = sum(c_across(-locus_family))) |> 
+#   dplyr::count(total)
+
+
+```
+
+
+```{r}
+# comparison_of_sig_genes <- all_wt_sig_flat |> 
+#    mutate(significant = replace(significant, is.na(significant), FALSE)) |> 
+#   pivot_wider(
+#     id_cols = locus_family,
+#     names_from = species,
+#     values_from = significant,
+#     values_fill = FALSE
+#   )
+# 
+# DE_for_upset <- comparison_of_sig_genes |> 
+#   dplyr::select(-locus_family) |> 
+#   filter(if_any(everything(), \(x) (x == TRUE)))
+```
+
+
+
+
+
+## What is the role of unique genes in driving DE divergence?
+
+How many unique genes are there in each genome?
+```{r}
+tidy_sig_genes <- bind_rows(all_wt_significance) |>
+  filter(significant) |>
+  group_by(locus_family) |>
+  summarise(species = list(species))
+
+tidy_all_genes <- bind_rows(all_wt_significance) |>
+  group_by(locus_family) |>
+  summarise(species = list(species))
+
+
+sig_genes_tally <- tidy_sig_genes |> 
+  group_by(species) |> 
+  tally(name = "observed") 
+
+all_genes_tally <- tidy_all_genes |> 
+  group_by(species) |> 
+  tally(name = "all")
+
+all_genes_tally |> 
+  filter(lengths(species) == 1) |> 
+  unnest_auto(col = species)
+  
+```
+Obs and exp of species-specific genes that are DE
+```{r}
+significance_species_specific <- tidy_all_genes |> 
+  filter(lengths(species) == 1) |> 
+  unnest_longer(col = species) |> 
+  mutate(species_specific = TRUE) |> 
+  full_join(all_wt_sig_flat, by = c("locus_family", "species"), ) |> 
+  mutate(significant = replace(significant, is.na(significant), FALSE),
+         species_specific = replace(species_specific, is.na(species_specific), FALSE)) 
+
+
+
+
+
+calc_species_specific_chisq <- function(species_to_test) {
+  de_unique <- significance_species_specific |> 
+  filter(species == species_to_test,
+         significant, 
+         species_specific) |> 
+  tally() |> 
+  pull()
+
+unique <- significance_species_specific |> 
+  filter(species == species_to_test,
+         species_specific) |> 
+  tally() |> 
+  pull()
+
+de <- significance_species_specific |> 
+  filter(species == species_to_test,
+         significant) |> 
+  tally() |> 
+  pull()
+  
+total <- significance_species_specific |> 
+  filter(species == species_to_test) |> 
+  tally() |> 
+  pull()
+
+enrichment = (de_unique/unique)/(de/total)
+
+expected = unique * (de/total)
+  
+  significance_species_specific |> 
+  filter(species == species_to_test) |> 
+  dplyr::select(species_specific, significant) |> 
+  chisq_test(species_specific ~ significant) |> 
+  mutate(species = species_to_test,
+         enrich = enrichment,
+         expected = round(expected,0),
+         observed = de_unique,
+         p_value = signif(p_value, digits = 1)) |> 
+    dplyr::select(species, observed, expected, p_value)
+  }
+
+
+species_spec_obs_exp <- purrr::map(species, calc_species_specific_chisq) |> 
+  bind_rows() |> 
+  mutate(species = fct_relevel(species, names(species_labels)),
+    species = fct_relabel(species, format_species_names)
+  ) |> 
+  arrange(species)
+
+
+species_spec_obs_exp
+```
+
+A plot of species specific observed vs expected
+```{r}
+species_spec_obs_exp_plot <- species_spec_obs_exp |> 
+  ggplot() +
+  geom_col(aes(x = species, y = observed), fill = "lightgray", width = .8) +
+  geom_col(aes(x = species,  y = expected), fill = "white", col = "black", alpha = 0, width = .8, lty = 2) +
+  annotate(geom = "text", x = 1.6, y = 290, label = "observed", color = "darkgray") +
+  annotate(geom = "text", x = .8, y = 290, label = "expected", color = "black" ) + 
+  annotate(geom = "segment", x= .8, xend = .9, y = 280, yend = 260 , lty = 2, color = "black") +
+  annotate(geom = "segment", x = 1.6, xend = 1.2, y = 280, yend = 205, color = "lightgray") +
+  #  geom_text(aes(x = 1.6, y = 290, label = "observed"), color = "darkgray") +
+  #  geom_text(aes(x = .8, y = 290, label = "expected"), ) + 
+  # geom_segment(aes(x= .8, xend = .9, y = 280, yend = 260 ), lty = 2) +
+  # geom_segment(aes(x = 1.6, xend = 1.2, y = 280, yend = 205), color = "lightgray") +
+  labs(x = "Species",
+       y = "Species-specific genes\ndiffernetially expressed") +
+  theme(axis.text.x = element_text(face = "italic")
+        ) 
+
+species_spec_obs_exp_plot
+```
+
+### What role do the conserved genes play in driving divergence of the transcriptome?
+
+```{r}
+significance_conserved <- tidy_all_genes |> 
+  filter(lengths(species) == 6) |> 
+  unnest_longer(col = species) |> 
+  mutate(conserved = TRUE) |> 
+  full_join(all_wt_sig_flat, by = c("locus_family", "species"), ) |> 
+  mutate(significant = replace(significant, is.na(significant), FALSE),
+         conserved = replace(conserved, is.na(conserved), FALSE))
+```
+
+
+Obs vs expected DE core genes
+```{r}
+calc_conserved_chisq <- function(species_to_test) {
+  de_unique <- significance_conserved |> 
+  filter(species == species_to_test,
+         significant, 
+         conserved) |> 
+  tally() |> 
+  pull()
+
+unique <- significance_conserved |> 
+  filter(species == species_to_test,
+         conserved) |> 
+  tally() |> 
+  pull()
+
+de <- significance_conserved |> 
+  filter(species == species_to_test,
+         significant) |> 
+  tally() |> 
+  pull()
+  
+total <- significance_conserved |> 
+  filter(species == species_to_test) |> 
+  tally() |> 
+  pull()
+
+enrichment = (de_unique/unique)/(de/total)
+
+expected = unique * (de/total)
+
+  significance_conserved |> 
+  filter(species == species_to_test) |> 
+  dplyr::select(conserved, significant) |> 
+  chisq_test(conserved ~ significant) |> 
+  mutate(species = species_to_test,
+         enrich = enrichment,
+         expected = round(expected,0),
+         observed = de_unique,
+         p_value = signif(p_value, digits = 1)) |> 
+    dplyr::select(species, observed, expected, p_value)
+  }
+
+
+
+core_obs_exp <- purrr::map(species, calc_conserved_chisq) |> 
+  bind_rows() |> 
+  mutate(species = fct_relevel(species, names(species_labels)),
+    species = fct_relabel(species, format_species_names)
+  ) |> 
+  arrange(species)
+
+
+core_obs_exp
+
+```
+
+A plot of core observed vs expected
+```{r}
+
+core_obs_exp_plot <- core_obs_exp |> 
+  ggplot() +
+  geom_col(aes(x = species, y = observed), fill = "lightgray", width = .8) +
+  geom_col(aes(x = species,  y = expected), fill = "white", col = "black", alpha = 0, width = .8, lty = 2) +
+  # geom_text(aes(x = 1.75, y = 561, label = "observed"), color = "darkgray") +
+  # geom_text(aes(x = 1.75, y = 481, label = "expected"), ) +
+  labs(x = "Species",
+       y = "Core genes\ndifferentially expressed") +
+  theme(axis.text.x = element_text(face = "italic")
+        ) 
+```
+
+Combine the two observed vs expected plots
+```{r}
+
+
+species_spec_obs_exp_plot /
+  core_obs_exp_plot +
+  plot_annotation(tag_levels = "A")
+
+ggsave("outputs/fig3_observed_vs_expected_DE.tiff", width = 7, height = 7, compression = "lzw")
+
+```
+
+
+What fraction of all core genes are DE in at least one species?
+```{r}
+significance_conserved |> 
+  filter(conserved, significant) |> 
+  pull(locus_family) |> 
+  n_distinct()
+
+significance_conserved |> 
+  filter(conserved) |> 
+  pull(locus_family) |> 
+  n_distinct()
+
+  
+```
+
+
+
+
+
+
+
+
+
+<!-- ## How many core genes are DE? -->
+
+<!-- ```{r} -->
+<!-- core_sig_genes_each_species <- all_wt_sig_flat |>  -->
+<!--   filter(locus_family  %in% core_locus_families) |> -->
+<!--    mutate(sig_direction = case_when(significant & (log2FoldChange < 0) ~ "Sig Down", -->
+<!--                                     significant & (log2FoldChange > 0) ~ "Sig Up", -->
+<!--                                     TRUE ~ "Not Sig"))  |>  -->
+<!--   dplyr::count(species, sig_direction) -->
+
+<!-- core_sig_genes_each_species -->
+
+<!-- ``` -->
+<!-- So my observation here is that while E. coli has very large regulon in the cold, the number of DE genes is only 60% of that for Klebsiella or Seratia. DE genes are a mix of up and down regulated. -->
+
+
+<!-- ```{r} -->
+<!-- core_num_sig_genes_plot <- core_sig_genes_each_species |>  -->
+<!--   mutate(    species = format_species_names(species), -->
+<!--                  species = fct_relevel( -->
+<!--       species, -->
+<!--       "E. coli", -->
+<!--       "S. enterica", -->
+<!--       "C. rodentium", -->
+<!--       "E. cloacae", -->
+<!--       "K. pneumoniae", -->
+<!--       "S. marcescens" -->
+<!--     )) |>  -->
+<!--   ggplot(aes(x = species, y = n)) + -->
+<!--     geom_col(aes(fill = sig_direction)) + -->
+<!--   scale_fill_brewer(name = "", -->
+<!--                                 palette = "Dark2") +  -->
+<!--   labs(x = "Species",  -->
+<!--        y = "Number of genes") + -->
+<!--   theme(axis.text.x = element_text(face = "italic") -->
+<!--         ) -->
+<!-- core_num_sig_genes_plot -->
+<!-- #We save this plot later together with an upset plot -->
+<!-- ``` -->
+
+
+## Upset of DE core genes
+```{r}
+
+core_sig_up_for_upset <- comparison_of_sig_up_genes |>
+  filter(locus_family  %in% core_locus_families) |>
+  dplyr::select(-locus_family) |>
+  relocate(
+    S_marcescens_Db11,
+    K_pneumoniae_KPNIH1,
+    E_cloacae_ATCC13047,
+    C_rodentium_ICC168,
+    S_typhimurium_14028s,
+    E_coli_K12
+  ) |>
+  filter(if_any(everything(), \(x) (x == TRUE)))
+
+core_sig_up_upset <- upset(
+  core_sig_up_for_upset,
+  colnames(core_sig_up_for_upset),
+  min_size = 15,
+  set_sizes = FALSE,
+  base_annotations = list('Number of upregulated\nDE core genes' = intersection_size(text = aes(size = 3))),
+  labeller = format_species_names,
+  sort_sets = "FALSE",
+  themes = upset_modify_themes(list(
+    text = element_text(size = 12),
+    'intersections_matrix' = theme(text = element_text(face = "italic"))
+  ))
+)
+
+
+core_sig_up_upset
+
+```
+
+```{r}
+core_sig_down_for_upset <- comparison_of_sig_down_genes |>
+  filter(locus_family  %in% core_locus_families) |>
+  dplyr::select(-locus_family) |>
+  relocate(
+    S_marcescens_Db11,
+    K_pneumoniae_KPNIH1,
+    E_cloacae_ATCC13047,
+    C_rodentium_ICC168,
+    S_typhimurium_14028s,
+    E_coli_K12
+  ) |>
+  filter(if_any(everything(), \(x) (x == TRUE)))
+
+core_sig_down_upset <- upset(
+  core_sig_down_for_upset,
+  colnames(core_sig_down_for_upset),
+  min_size = 15,
+  set_sizes = FALSE,
+  base_annotations = list('Number of downregulated\nDE core genes' = intersection_size(text = aes(size = 3.5))),
+  labeller = format_species_names,
+  sort_sets = "FALSE",
+  themes = upset_modify_themes(list(
+    text = element_text(size = 12),
+    'intersections_matrix' = theme(text = element_text(face = "italic"))
+  ))
+)
+
+
+core_sig_down_upset
+
+```
+### Assemble the core DE upset plot
+
+```{r}
+wrap_plots(core_sig_up_upset, core_sig_down_upset, nrow = 1, ncol = 2) + plot_annotation(tag_levels = list(c("A", " ", "B", "")))
+
+ggsave("outputs/fig4_core_up_and_down_DE.tiff", width = 8, height = 5)
+
+```
+
+# Diffenrwntial expression in a phylogenetic context
+
+### Read in the phylogeny given to xenoGI, which is supported by ASTRAL
+
+```{r}
+tree <- ape::read.tree(file = "trees/enterics.tre")
+
+tree$tip.label <- format_species_names(tree$tip.label)
+
+
+phylo <- ggtree(tree) +
+  geom_tiplab(fontface = 3) +
+  geom_nodepoint(
+    color = "black",
+    fill = "white",
+    size = 7,
+    shape = 21
+  ) +
+  geom_nodelab() +
+  ggplot2::xlim(0, 12) 
+
+
+```
+
+
+
+
+## Read in and format xenoGI data
+
+### Create functions and data to format data based on which node things are at
+
+```{r}
+node_info <- tibble(node = c("s0", "s1", "s2", "s3", "s4"), num_species = 6:2)
+
+get_locus_fam_at_node <- function(node, num) {
+  geneinfo_with_locus_fam_no_dups |>
+    filter(loc_fam_MRCA == node) |>
+    group_by(locus_family) |>
+    tally() |>
+    filter(n == num) |>
+    pull(locus_family)
+  
+}
+
+
+
+locus_fams_per_node <- map2(.x = node_info$node, .y = node_info$num_species, .f = get_locus_fam_at_node)
+names(locus_fams_per_node) <- node_info$node
+
+
+#A function given the locus_family and the species list to check against, return if they are the same
+
+check_locus_fam_has_all_species <- function(locus_family_to_check, species_to_check_against){
+  species_in_locus_family <- geneinfo_with_locus_fam_no_dups |> 
+  filter(locus_family == locus_family_to_check) |> 
+  pull(species)
+
+identical(sort(as.character(species_to_check_against)), sort(species_in_locus_family))
+  
+}
+
+species_to_study <- c("E_coli_K12",
+                                "S_typhimurium_14028s",
+                                "C_rodentium_ICC168",
+                                "E_cloacae_ATCC13047",
+                                "K_pneumoniae_KPNIH1",
+                                "S_marcescens_Db11")
+
+
+plan(multisession, workers= 6)
+
+species_per_node <- list(s0 = species_to_study, 
+                         s1 = species_to_study[1:5], 
+                         s2 = species_to_study[1:4],
+                         s3 = species_to_study[1:3],
+                         s4 = species_to_study[1:2])
+
+trees_per_node <- list(s0 = tree,
+                      s1 = extract.clade(tree, 8),
+                      s2 = extract.clade(tree, 9),
+                      s3 = extract.clade(tree, 10),
+                      s4 = extract.clade(tree, 11))
+
+```
+
+### For each node, come up wiht the list of locus fams per node
+
+This could have been done in a single map I think
+
+```{r}
+s0 <- locus_fams_per_node$s0 |>
+  future_map(
+    \(x) check_locus_fam_has_all_species(
+      locus_family_to_check = x,
+      species_to_check_against = species_per_node$s0
+    ),
+    .progress = TRUE
+  )
+
+names(s0) <- locus_fams_per_node$s0
+s0_summary <- enframe(s0) |>
+  mutate(value = unlist(value)) |> 
+  dplyr::rename(locus_fam = name)
+  
+  
+s1 <- locus_fams_per_node$s1 |>
+  future_map(
+    \(x) check_locus_fam_has_all_species(
+      locus_family_to_check = x,
+      species_to_check_against = species_per_node$s1
+    ),
+    .progress = TRUE
+  )
+names(s1) <- locus_fams_per_node$s1
+s1_summary <- enframe(s1) |>
+  mutate(value = unlist(value)) |> 
+  dplyr::rename(locus_fam = name)
+
+s2 <- locus_fams_per_node$s2 |>
+  future_map(
+    \(x) check_locus_fam_has_all_species(
+      locus_family_to_check = x,
+      species_to_check_against = species_per_node$s2
+    ),
+    .progress = TRUE
+  )
+names(s2) <- locus_fams_per_node$s2
+
+s2_summary <- enframe(s2) |>
+  mutate(value = unlist(value)) |> 
+  dplyr::rename(locus_fam = name)
+
+s3 <- locus_fams_per_node$s3 |>
+  future_map(
+    \(x) check_locus_fam_has_all_species(
+      locus_family_to_check = x,
+      species_to_check_against = species_per_node$s3
+    ),
+    .progress = TRUE
+  )
+names(s3) <- locus_fams_per_node$s3
+
+s3_summary <- enframe(s3) |>
+  mutate(value = unlist(value)) |> 
+  dplyr::rename(locus_fam = name)
+
+
+s4 <- locus_fams_per_node$s4 |>
+  future_map(
+    \(x) check_locus_fam_has_all_species(
+      locus_family_to_check = x,
+      species_to_check_against = species_per_node$s4
+    ),
+    .progress = TRUE
+  )
+names(s4) <- locus_fams_per_node$s4
+
+s4_summary <- enframe(s4) |>
+  mutate(value = unlist(value)) |> 
+  dplyr::rename(locus_fam = name)
+
+
+
+locus_fams_with_correct_descendents <-
+  bind_rows(
+    list(
+      s0 = s0_summary,
+      s1 = s1_summary,
+      s2 = s2_summary,
+      s3 = s3_summary,
+      s4 = s4_summary
+    ),
+    .id = "node"
+  ) |>
+  filter(value)
+```
+
+Locus families in `locus_fams_with_correct_descendents` that have a value of TRUE (almost all of them) have *all* the expected descendants and no others. 
+
+
+
+
+### Calculate the the proportion of orthologues that are DE for any given family.
+
+```{r}
+
+# A funuction to do the calculation 
+get_prop_sig_at_node <- function(node_fams, node_num){
+
+all_wt_sig_flat |> 
+  mutate(significant = replace(significant, is.na(significant), FALSE)) |> 
+  filter(locus_family %in% node_fams) |> 
+  group_by(locus_family) |> 
+  summarise(num_sig = sum(significant),
+            prop_sig = sum(significant)/n()) |> 
+  mutate(node = node_num)
+  
+}
+
+#Do the calculation
+
+prop_sig_each_node <- node_info$node |> 
+  set_names() |> 
+  purrr::map(\(x) locus_fams_with_correct_descendents |> 
+  filter(node == x) |> 
+  pull(locus_fam) |> 
+  get_prop_sig_at_node(node_num = x)) |> 
+  bind_rows()
+
+```
+
+
+###Attach the above data to the ggtree and the produce a plot with the phylogeny and the below plot together.
+```{r}
+
+node_significance <- prop_sig_each_node |> 
+  filter(num_sig > 0) |>
+  mutate(node_num = factor(node),
+         num_sig = factor(num_sig)) |>
+  group_by(node_num, num_sig) |>
+  tally()
+
+  
+b <- node_significance |> 
+    ggplot() +
+  geom_col(aes(y = node_num, x = n, fill = num_sig), color = "black") +
+  scale_fill_brewer(palette = "Dark2") +
+  labs(fill = "Number species in which\na given gene is DE",
+       x = "Number of genes", y = "node") +
+     theme(legend.position = "top")
+
+
+phylo + b +
+  plot_annotation(tag_levels = "A") +
+  plot_layout(widths = c(1, 1.45))
+
+ggsave("outputs/fig5_phylo_with_shared_DE.tiff", width = 7, height = 5, compression = "lzw")
+
+```
+
+What I see for each node is that most DE genes are DE in only a single genome.
+
+
+```{r}
+species_spec_obs_exp_plot /
+  core_obs_exp_plot +
+  plot_annotation(tag_levels = "A")
+
+wrap_plots(core_sig_up_upset, core_sig_down_upset, nrow = 1, ncol = 2) + plot_annotation(tag_levels = list(c("A", " ", "B", "")))
+
+
+phylo + b +
+  plot_annotation(tag_levels = "A") +
+  plot_layout(widths = c(1, 1.45))
+
+```
+
