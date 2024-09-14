@@ -8,10 +8,12 @@ output: html_document
 ```{r message=FALSE}
 library(tidyverse)
 library(DESeq2)
+library(ggforce)
 library(patchwork)
 library(readxl)
 library(topGO)
 library(ComplexUpset)
+
 theme_set(theme_classic())
 ```
 
@@ -29,6 +31,70 @@ if(!file.exists("basic_analysis.RData")) {
   tools::md5sum("basic_analysis.RData")
 }
 ```
+
+# Use PCA for quality control of these data
+
+```{r}
+core_locus_families <- all_wt_sig_flat |> 
+  dplyr::count(locus_family) |> 
+  filter(n == 6) |> 
+  pull(locus_family)
+
+counts_by_xenoGI_conserved_wide <- counts_by_xenoGI_num_wide |> 
+  filter(locus_family %in% core_locus_families) |> 
+  dplyr::select(locus_family, contains("K12"), contains("14028s"))
+
+sample_rpoS <- sample_table |> 
+  filter(species == "E_coli_K12" | species == "S_typhimurium_14028s")
+
+sorted_count_data <- column_to_rownames(counts_by_xenoGI_conserved_wide, "locus_family")[ , rownames(sample_rpoS)]
+  
+
+rpoS_dds_conserved <-
+  DESeqDataSetFromMatrix(
+    countData = sorted_count_data,
+    colData = sample_rpoS,
+    design = ~ condition
+  ) |>
+  DESeq()
+
+rpoS_vsd <- vst(rpoS_dds_conserved)
+
+#plotPCA(all_vsd, intgroup = c("temp", "species"))
+
+pcaData <- plotPCA(rpoS_vsd, intgroup=c("temp", "species", "genotype"), returnData=TRUE, ntop = 1900) 
+
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+
+
+pca <-  pcaData |>
+  mutate(
+    species = factor(species,
+                     levels = names(species_labels)),
+    species = fct_relabel(species, format_species_names),
+    temperature = str_replace(temp, "C", "°C")
+  ) |>
+  ggplot(aes(PC1, PC2)) +
+  geom_point(aes(color = genotype, shape = temperature), size = 4, alpha = .7) +
+  geom_mark_ellipse(aes(group = species,
+                        label = species),
+                    label.fontface = "italic") +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+  coord_fixed() +
+  lims(x = c(-35, 40),
+       y = c(-40, 40)) +
+  theme_classic() +
+  theme(legend.text = element_text(face = "italic"),
+        legend.position = "right") +
+scale_color_brewer(palette = "Dark2") 
+
+pca
+ggsave(filename = "outputs/delRpoS_pca.tiff", width = 7.5, height = 5, compression = "lzw")
+```
+```
+
+
 
 
 ### How many genes are DE between wt & ∆rpoS at 15°C in E. coli and Salmonella
