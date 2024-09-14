@@ -30,6 +30,14 @@ if(!file.exists("basic_analysis.RData")) {
 }
 ```
 
+# Use PCA for quality control of these data
+
+```{r}
+
+```
+
+
+
 
 ### How many genes are DE between wt & ∆rpoS at 15°C in E. coli and Salmonella
 ```{r}
