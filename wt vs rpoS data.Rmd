@@ -92,8 +92,6 @@ scale_color_brewer(palette = "Dark2")
 pca
 ggsave(filename = "outputs/delRpoS_pca.tiff", width = 7.5, height = 5, compression = "lzw")
 ```
-```
-
 
 
 
