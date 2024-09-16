@@ -82,12 +82,15 @@ pca <-  pcaData |>
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) +
   coord_fixed() +
-  lims(x = c(-35, 40),
+  lims(x = c(-35, 50),
        y = c(-40, 40)) +
-  theme_classic() +
+  scale_color_brewer(palette = "Dark2") +
+  # guides(shape = guide_legend(theme = theme(
+  #   legend.title.position = "top"))) +
+  #theme_classic() +
   theme(legend.text = element_text(face = "italic"),
-        legend.position = "right") +
-scale_color_brewer(palette = "Dark2") 
+        legend.position = "top") 
+
 
 pca
 ggsave(filename = "outputs/delRpoS_pca.tiff", width = 7.5, height = 5, compression = "lzw")
@@ -146,7 +149,7 @@ n <- c(99, 83, 50, 49, 83, 57)
 
 rev_scale <- rev(RColorBrewer::brewer.pal(3, "Dark2"))
 
-tibble(species, status_other_species, n) |>
+delRpoS_overlap_plot <- tibble(species, status_other_species, n) |>
   mutate(status_other_species = fct_relevel(status_other_species,  c("Not present", "Present, not DE","DE"))) |>
   ggplot() +
   geom_col(aes(x = species, y = n, fill = status_other_species)) +
@@ -159,7 +162,12 @@ tibble(species, status_other_species, n) |>
         legend.position = "top") +
   coord_flip()
 
-ggsave("outputs/fig12_delRpoS_genes.tiff", width = 6, height = 3)
+
+pca + delRpoS_overlap_plot + plot_annotation(tag_levels = "A") & theme(
+        legend.title.position = "top")
+
+
+ggsave("outputs/figXX_delRpoS_PCA_genes.tiff", width = 7, height = 4, compression = "lzw")
 
 ```
 
