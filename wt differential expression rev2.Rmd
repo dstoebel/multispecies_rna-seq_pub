@@ -191,7 +191,6 @@ tree <- ape::read.tree(file = "trees/enterics.tre")
 
 tree$tip.label <- format_species_names(tree$tip.label)
 
-
 phylo <- ggtree(tree) +
   geom_tiplab(fontface = 3) +
   ggplot2::xlim(0, 18) 
@@ -202,14 +201,14 @@ phylo
 
 ```{r}
 
-genome_content_combined <- ((phylo / total_genes_plot) |
+genome_content_combined <- ((phylo / total_genes_plot) | plot_spacer() |
                               genome_content_upset) + 
   plot_annotation(tag_levels = list(c("A", "B", "C"))) +
-  plot_layout(widths = c(1, 2))
+  plot_layout(widths = c(1, .4, 2))
 
 genome_content_combined
 
-ggsave(filename = "outputs/fig1_upset_all_genes.tiff", plot = genome_content_combined, width = 7, height = 7, compression = "lzw")
+ggsave(filename = "outputs/fig1_upset_all_genes.tiff", plot = genome_content_combined, width = 7, height = 5, compression = "lzw")
 
 
 
@@ -1080,9 +1079,9 @@ sig_species_each_node <- node_significance |>
   labs(fill = "Number species in which\na given gene is DE",
        x = "Number of genes", y = "node") +
      theme(legend.position = "bottom")
+sig_species_each_node
 
-
-phylo + b +
+phylo + sig_species_each_node +
   plot_annotation(tag_levels = "A") +
   plot_layout(widths = c(1, 1.45))
 
@@ -1101,14 +1100,17 @@ species_spec_obs_exp_plot /
 wrap_plots(core_sig_up_upset, core_sig_down_upset, nrow = 1, ncol = 2) + plot_annotation(tag_levels = list(c("A", " ", "B", "")))
 
 
-phylo + b +
+phylo + sig_species_each_node +
   plot_annotation(tag_levels = "A") +
   plot_layout(widths = c(1, 1.45))
 
 
-(species_spec_obs_exp_plot | core_obs_exp_plot) / (core_sig_up_upset | core_sig_down_upset) / (sig_species_each_node + inset_element(phylo, left = .5, right = 1, top = 1, bottom = .3)) +  plot_annotation(tag_levels = list(c("A", "B", "C", "", "D", "", "E")))
+(species_spec_obs_exp_plot | core_obs_exp_plot) / 
+  (core_sig_up_upset | core_sig_down_upset) / 
+  (sig_species_each_node + inset_element(phylo, left = .5, right = 1, top = 1, bottom = .3)) +  
+  plot_annotation(tag_levels = list(c("A", "B", "C", "", "D", "", "E")))
 
-ggsave("outputs/fig345.tiff", width = 8, height = 12, compression = "lzw")
+ggsave("outputs/fig345.tiff", width = 7.5, height = 11, compression = "lzw")
 
 ```
 
