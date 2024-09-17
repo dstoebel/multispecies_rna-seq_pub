@@ -171,7 +171,8 @@ genome_content_upset <- upset(
   width_ratio = 0.25,
   set_sizes = FALSE,
   sort_sets = FALSE,
-  base_annotations = list('Number of genes\nin only this set of species' = intersection_size(text = aes(size = 2))),
+ # base_annotations = list('Number of genes\nin only this set of species' = intersection_size(text = aes(size = 2))),
+  base_annotations = list('Number of genes\nin only this set of species' = intersection_size(counts= FALSE)),
   labeller = format_species_names,
   themes = upset_modify_themes(list(
     'default' = theme(text=element_text(size = 12)),
@@ -193,7 +194,7 @@ tree$tip.label <- format_species_names(tree$tip.label)
 
 phylo <- ggtree(tree) +
   geom_tiplab(fontface = 3) +
-  ggplot2::xlim(0, 18) 
+  ggplot2::xlim(0, 22) 
 
 phylo
 ```
@@ -201,10 +202,10 @@ phylo
 
 ```{r}
 
-genome_content_combined <- ((phylo / total_genes_plot) | plot_spacer() |
+genome_content_combined <- ((phylo / total_genes_plot) | 
                               genome_content_upset) + 
   plot_annotation(tag_levels = list(c("A", "B", "C"))) +
-  plot_layout(widths = c(1, .4, 2))
+  plot_layout(widths = c(1, 2))
 
 genome_content_combined
 
@@ -859,7 +860,7 @@ tree <- ape::read.tree(file = "trees/enterics.tre")
 tree$tip.label <- format_species_names(tree$tip.label)
 
 
-phylo <- ggtree(tree) +
+phylo_with_node_labels <- ggtree(tree) +
   geom_tiplab(fontface = 3) +
   geom_nodepoint(
     color = "black",
@@ -1081,7 +1082,7 @@ sig_species_each_node <- node_significance |>
      theme(legend.position = "bottom")
 sig_species_each_node
 
-phylo + sig_species_each_node +
+phylo_with_node_labels + sig_species_each_node +
   plot_annotation(tag_levels = "A") +
   plot_layout(widths = c(1, 1.45))
 
@@ -1110,7 +1111,7 @@ phylo + sig_species_each_node +
   (sig_species_each_node + inset_element(phylo, left = .5, right = 1, top = 1, bottom = .3)) +  
   plot_annotation(tag_levels = list(c("A", "B", "C", "", "D", "", "E")))
 
-ggsave("outputs/fig345.tiff", width = 7.5, height = 11, compression = "lzw")
+ggsave("outputs/fig345.tiff", width = 7.5, height = 10, compression = "lzw")
 
 ```
 
