@@ -253,7 +253,7 @@ upset(
   set_sizes = FALSE ,
   sort_sets = FALSE,
   base_annotations=list(
-        'Number of enriched GO terms'=intersection_size(text = aes(size = 2.5))
+        'Number of enriched GO terms'=intersection_size(counts = FALSE)
     ),
   labeller = format_species_names,
      themes = upset_modify_themes(
@@ -264,7 +264,7 @@ upset(
 )
 
 
-ggsave(filename = "outputs/fig7_GO_upset.tiff", width = 8, height= 5)
+ggsave(filename = "outputs/fig4_GO_upset.tiff", width = 8, height= 5, compression = "lzw")
 ```
 
 
@@ -503,7 +503,7 @@ What I find interesting about this plot is that fur is very slightly temp regula
         axis.title = element_text(size = 8),
   )
 
-ggsave(filename = "outputs/fig8_iron_combined.tiff", height = 7.5, width = 7.5)
+ggsave(filename = "outputs/fig5_iron_combined.tiff", height = 7.5, width = 7.5, compression = "lzw")
 ```
 For what species are fur or hns DE?
 
@@ -627,16 +627,12 @@ tca_plot + glycine_plot + biofilm_plot + cold_plot + plot_layout(guides = 'colle
         #   strip.background = element_rect(linewidth = NA)
   )
 
-ggsave(filename = "outputs/fig9_misc_GO.tiff", height = (20/3), width = 10)
+ggsave(filename = "outputs/figS1_misc_GO.tiff", height = (20/3), width = 10, compression = "lzw")
 
 ```
 This is a heterogeneous bunch, including otsBA (trehalose biosynthesis), lpxABCP (lipid A biosynthesis - lipid A is what anchors LPS to the membrane)
 Many of the genes involved in LPS are annotaed for response to oxidative stress, antibiotic biosynthesis, and oligosaccaride. 
 
-
-```{r}
-
-```
 
 
 
@@ -686,7 +682,7 @@ combined_ribosome_plot + elect_trans +
   )
   
 
-ggsave(filename = "outputs/fig10_ribosome_proton_transport.tiff", width = 7, height = 4)
+ggsave(filename = "outputs/figS2_ribosome_proton_transport.tiff", width = 7, height = 4, compression = "lzw")
 
 get_genes_from_GO(GO_term_to_inspect  = "GO:0015990") |> 
   filter(species == "E. coli", significant)
@@ -776,7 +772,7 @@ colanic_acid_custom_plot / rcsA + rcsB +#  / rcsC / rcsD +
         #   strip.background = element_rect(linewidth = NA)
   )
 
-ggsave(filename = "outputs/fig11_colanic_acid.tiff", height = 7, width = 7.5)
+ggsave(filename = "outputs/fig6_colanic_acid.tiff", height = 7, width = 7.5, compression = "lzw")
 
 
 ##Info on rcs genes
