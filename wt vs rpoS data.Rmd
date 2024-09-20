@@ -82,8 +82,8 @@ pca <-  pcaData |>
   xlab(paste0("PC1: ", percentVar[1], "% variance")) +
   ylab(paste0("PC2: ", percentVar[2], "% variance")) +
   coord_fixed() +
-  lims(x = c(-35, 50),
-       y = c(-40, 40)) +
+  lims(x = c(-40, 50),
+       y = c(-50, 50)) +
   scale_color_brewer(palette = "Dark2") +
   # guides(shape = guide_legend(theme = theme(
   #   legend.title.position = "top"))) +
@@ -93,7 +93,7 @@ pca <-  pcaData |>
 
 
 pca
-ggsave(filename = "outputs/delRpoS_pca.tiff", width = 7.5, height = 5, compression = "lzw")
+#ggsave(filename = "outputs/fig7_delRpoS_pca.tiff", width = 7.5, height = 5, compression = "lzw")
 ```
 
 
@@ -163,11 +163,12 @@ delRpoS_overlap_plot <- tibble(species, status_other_species, n) |>
   coord_flip()
 
 
-pca + delRpoS_overlap_plot + plot_annotation(tag_levels = "A") & theme(
-        legend.title.position = "top")
+pca + delRpoS_overlap_plot + plot_annotation(tag_levels = "A") +
+  plot_layout(widths = c(1.1, 1)) & 
+  theme(legend.direction = "vertical")
 
 
-ggsave("outputs/figXX_delRpoS_PCA_genes.tiff", width = 7, height = 4, compression = "lzw")
+ggsave("outputs/fig7_delRpoS_PCA_genes.tiff", width = 10, height = 6, compression = "lzw")
 
 ```
 
