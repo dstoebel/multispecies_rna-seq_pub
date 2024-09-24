@@ -444,16 +444,15 @@ all_up_locus_fams <- all_wt_sig_flat |>
 
 
 all_down_locus_fams <- all_wt_sig_flat |> 
-  mutate(sig_up = case_when(significant & (log2FoldChange < 0) ~ TRUE,
+  mutate(sig_down = case_when(significant & (log2FoldChange < 0) ~ TRUE,
                             TRUE ~ FALSE)) |> 
   group_by(locus_family) |> 
-  summarise(num_up = sum(sig_up)) |> 
-  filter(num_up == 6) |> 
+  summarise(num_down = sum(sig_down)) |> 
+  filter(num_down == 6) |> 
   left_join(locus_fam_ecoli_names)
 
 all_up_locus_fams
 all_down_locus_fams
-
 
 ```
 
