@@ -13,9 +13,9 @@ In order to try to do a GO enrichment analysis, I ran all of the genomes through
 I want to:
 
 - read in the results
-- split the query column to speperate the locus_tag from the part that contains the species
-- seperate each part of the giant tibble into its own tibble
-- end up with a single tibble for each species wich only has the locus_tag and the corresponding GOs.
+- split the query column to separate the locus_tag from the part that contains the species
+- separate each part of the giant tibble into its own tibble
+- end up with a single tibble for each species which only has the locus_tag and the corresponding GOs.
 
 
 ```{r}
