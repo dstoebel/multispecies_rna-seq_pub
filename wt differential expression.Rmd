@@ -8,7 +8,6 @@ data set.
 
 
 ```{r message=FALSE}
-conflictRules("maps", exclude = "map") #The package maps is loaded by gieger, but I don't use that map function. I do however use map in purrr
 library(tidyverse)
 library(furrr)
 library(DESeq2)
