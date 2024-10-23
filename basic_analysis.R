@@ -536,7 +536,8 @@ plot_gene <- function(count_data = merged_data, ecoli_gene_name = NA, locus_fami
                  labeller = labeller(species = species_labels)) +
       scale_color_brewer(palette = "Set1") +
       theme(text = element_text(size = 10),
-            strip.text.x = element_text(face = "italic")) +
+            strip.text.x = element_text(face = "italic"),
+            plot.title = element_text(face = "italic")) +
       labs(title = paste(ecoli_gene_name,extra_title_text), 
              x = "Temperature",
            y = "Normalized count") +
@@ -567,7 +568,8 @@ plot_gene <- function(count_data = merged_data, ecoli_gene_name = NA, locus_fami
                   labeller = labeller(species = species_labels)) +
       scale_color_brewer(palette = "Set1") +
       theme(text = element_text(size = 10),
-            strip.text.x = element_text(face = "italic")) +
+            strip.text.x = element_text(face = "italic"),
+            plot.title = element_text(face = "italic")) +
       labs(title = paste("locus family",locus_family_num,extra_title_text),
            x = "Temperature",
            y = "Normalized count") +
@@ -613,7 +615,8 @@ plot_wt_gene <- function(count_data = merged_data, ecoli_gene_name = NA, locus_f
                  labeller = labeller(species = species_labels)) +
       scale_color_brewer(palette = "Set1") +
       theme(text = element_text(size = 10),
-            strip.text.x = element_text(face = "italic")) +
+            strip.text.x = element_text(face = "italic"),
+            plot.title = element_text(face = "italic")) +
       labs(title = paste(ecoli_gene_name,extra_title_text),
            x = "Temperature",
            y = "Normalized count") +
@@ -646,7 +649,8 @@ plot_wt_gene <- function(count_data = merged_data, ecoli_gene_name = NA, locus_f
                   labeller = labeller(species = species_labels)) +
       scale_color_brewer(palette = "Set1") +
       theme(text = element_text(size = 10),
-            strip.text.x = element_text(face = "italic")) +
+            strip.text.x = element_text(face = "italic"),
+            plot.title = element_text(face = "italic")) +
       labs(title = paste("locus family",locus_family_num,extra_title_text),
            x = "Temperature",
            y = "Normalized count") +
