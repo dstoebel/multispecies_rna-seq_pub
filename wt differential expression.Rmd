@@ -99,7 +99,7 @@ total_genes_plot
 ```
 
 ### How many core genes are there, what are they, and what percentage of genes in each genome are core??
-
+### I think this is solved by the experimental code below
 ```{r}
 all_wt_sig_flat |> 
   dplyr::count(locus_family) |> 
@@ -121,6 +121,7 @@ total_genes_each_species |>
 ```
 
 ### How many species specific genes?
+### I think this is solved by the experimental code below
 ```{r}
 unique_locus_fam <- all_wt_sig_flat |> 
   dplyr::count(locus_family) |> 
@@ -131,9 +132,65 @@ all_wt_sig_flat |>
   filter(locus_family %in% unique_locus_fam) |> 
   dplyr::count(species) |> 
   left_join(total_genes_each_species, join_by(species), suffix = c("_unique", "_total")) |> 
-  mutate("percent of genes that are species-specific" = round(100*n_unique/n_total,1))
+  mutate("percent of genes that are species-specific" = round(100*n_unique/n_total,1),
+         )
 
 
+
+```
+### Experimental: Calculate the number of genes in each grouping, and also calculate the percentages
+```{r}
+locus_fam_num_genomes <- all_wt_sig_flat |> 
+  dplyr::count(locus_family) |> 
+  mutate(num_genomes_with_locus_fam = n)
+
+gene_sharing_each_genome <- all_wt_sig_flat |> 
+  left_join(locus_fam_num_genomes, join_by(locus_family)) |> 
+  group_by(species) |> 
+  dplyr::count(num_genomes_with_locus_fam) |> 
+  mutate(pct = round(100*n/sum(n),1),
+        species = format_species_names(species)
+) 
+
+gene_sharing_each_genome |> 
+  mutate(pct = paste0("(",pct,"%)")) |> 
+  unite(value, c(n, pct), sep = " ") |> 
+  pivot_wider(names_from = num_genomes_with_locus_fam, values_from = value) |> 
+  write_tsv("outputs/gene_sharing_table.tsv")
+
+dist_genes_plot <- gene_sharing_each_genome |>
+  ungroup() |> 
+  mutate(
+    species = fct_relevel(
+      species,
+      "E. coli",
+      "S. enterica",
+      "C. rodentium",
+      "E. cloacae",
+      "K. pneumoniae",
+      "S. marcescens"
+    )
+  ) |>
+  ggplot(aes(
+    x = species,
+    y = n,
+    fill = as.factor(num_genomes_with_locus_fam)
+  )) +
+  geom_col(color = "black") +
+  scale_fill_brewer(palette = "Dark2") +
+    labs(x = "Species", 
+       y = "Number of genes",
+       fill = "Number species in which\na given gene is present") +
+  theme(axis.text.x = element_text(face = "italic", angle = 45, hjust = 1)
+       #  legend.position = "bottom" 
+        ) +
+  guides(fill = guide_legend(override.aes = list(size =0.2),
+                             position = "right",
+                             ncol = 2,
+                             theme = theme(legend.title.position = "top"))) +
+  NULL
+
+dist_genes_plot
 
 ```
 
@@ -167,8 +224,8 @@ genome_content_upset <- upset(
   width_ratio = 0.25,
   set_sizes = FALSE,
   sort_sets = FALSE,
- # base_annotations = list('Number of genes\nin only this set of species' = intersection_size(text = aes(size = 2))),
-  base_annotations = list('Number of genes\nin only this set of species' = intersection_size(counts= FALSE)),
+  base_annotations = list('Number of genes\nin only this set of species' = intersection_size(text = aes(size = 2))),
+ # base_annotations = list('Number of genes\nin only this set of species' = intersection_size(counts= FALSE)),
   labeller = format_species_names,
   themes = upset_modify_themes(list(
     'default' = theme(text=element_text(size = 12)),
@@ -178,6 +235,11 @@ genome_content_upset <- upset(
 
 genome_content_upset
 ```
+
+```{r}
+
+```
+
 
 
 ### Load phylogeny of these species
@@ -198,8 +260,8 @@ phylo
 
 ```{r}
 
-genome_content_combined <- ((phylo / total_genes_plot) | 
-                              genome_content_upset) + 
+genome_content_combined <- ((phylo / total_genes_plot | 
+                              genome_content_upset)) + 
   plot_annotation(tag_levels = list(c("A", "B", "C"))) +
   plot_layout(widths = c(1, 2))
 
@@ -355,7 +417,7 @@ sig_up_upset <- upset(
   min_size = 15,
   set_sizes = FALSE,
   base_annotations=list(
-        'Number of\nupregulated DE genes'=intersection_size(counts= FALSE)
+        'Number of\nupregulated DE genes'=intersection_size(text = aes(size = 3))
     ),
   labeller = format_species_names,
   sort_sets = "FALSE",
@@ -400,7 +462,7 @@ sig_down_upset <- upset(
   colnames(sig_down_for_upset),
   min_size = 15,
   set_sizes = FALSE,
-  base_annotations = list('Number of\ndownregulated DE genes' = intersection_size(counts= FALSE)),
+  base_annotations = list('Number of\ndownregulated DE genes' = intersection_size(text = aes(size = 3))),
   sort_sets = "FALSE",
   labeller = format_species_names,
   themes = upset_modify_themes(
@@ -789,7 +851,7 @@ core_sig_up_upset <- upset(
   colnames(core_sig_up_for_upset),
   min_size = 15,
   set_sizes = FALSE,
-  base_annotations = list('Number of upregulated\nDE core genes' = intersection_size(counts= FALSE)),
+  base_annotations = list('Number of upregulated\nDE core genes' = intersection_size(text = aes(size = 3))),
   labeller = format_species_names,
   sort_sets = "FALSE",
   themes = upset_modify_themes(list(
@@ -822,7 +884,7 @@ core_sig_down_upset <- upset(
   colnames(core_sig_down_for_upset),
   min_size = 15,
   set_sizes = FALSE,
-  base_annotations = list('Number of downregulated\nDE core genes' = intersection_size(counts= FALSE)),
+  base_annotations = list('Number of downregulated\nDE core genes' = intersection_size(text = aes(size = 3))),
   labeller = format_species_names,
   sort_sets = "FALSE",
   themes = upset_modify_themes(list(
