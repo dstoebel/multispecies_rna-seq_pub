@@ -38,7 +38,7 @@ plan(multisession, workers = 2)
 if(!file.exists("basic_analysis.RData")) {
   source("basic_analysis.R")
   tools::md5sum("basic_analysis.RData")
-} else if (tools::md5sum("basic_analysis.RData") == "c8a2afac305759229b7085cfc279a4af") {
+} else if (tools::md5sum("basic_analysis.RData") == "2cc4900ee4928607d043efa44472f8ab") {
   load("basic_analysis.RData")
   print("basic_analysis.RData loaded")
 } else{
@@ -253,7 +253,7 @@ upset(
   set_sizes = FALSE ,
   sort_sets = FALSE,
   base_annotations=list(
-        'Number of enriched GO terms'=intersection_size(counts = FALSE)
+        'Number of enriched GO terms'=intersection_size(text = aes(size = 3))
     ),
   labeller = format_species_names,
      themes = upset_modify_themes(
@@ -264,7 +264,7 @@ upset(
 )
 
 
-ggsave(filename = "outputs/fig4_GO_upset.tiff", width = 8, height= 5, compression = "lzw")
+ggsave(filename = "outputs/fig4_GO_upset.tiff", width = 7, height= 5, compression = "lzw")
 ```
 
 

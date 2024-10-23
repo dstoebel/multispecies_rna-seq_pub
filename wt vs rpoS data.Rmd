@@ -22,7 +22,7 @@ theme_set(theme_classic())
 if(!file.exists("basic_analysis.RData")) {
   source("basic_analysis.R")
   tools::md5sum("basic_analysis.RData")
-} else if (tools::md5sum("basic_analysis.RData") == "c8a2afac305759229b7085cfc279a4af") {
+} else if (tools::md5sum("basic_analysis.RData") == "2cc4900ee4928607d043efa44472f8ab") {
   load("basic_analysis.RData")
   print("basic_analysis.RData loaded")
 } else{
