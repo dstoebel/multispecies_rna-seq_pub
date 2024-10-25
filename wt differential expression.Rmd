@@ -115,50 +115,9 @@ locus_tags_per_family <- geneinfo_with_locus_fam_no_dups |>
 
 ```
 
-
-
-### How many core genes are there, what are they, and what percentage of genes in each genome are core??
-### I think this is solved by the experimental code below
+### Calculate the number of genes in each grouping, and also calculate the percentages
 ```{r}
-all_wt_sig_flat |> 
-  dplyr::count(locus_family) |> 
-  dplyr::count(n)  |> 
-  dplyr::rename("number of genomes" = n,
-                "number of genes found in this many genomes" = nn) 
 
-##There are 1838 core genes
-
-core_locus_families <- all_wt_sig_flat |> 
-  dplyr::count(locus_family) |> 
-  filter(n == 6) |> 
-  pull(locus_family)
-
-
-
-total_genes_each_species |> 
-  mutate(pct_core = 100*1838/n)
-```
-
-### How many species specific genes?
-### I think this is solved by the experimental code below
-```{r}
-unique_locus_fam <- all_wt_sig_flat |> 
-  dplyr::count(locus_family) |> 
-  filter(n == 1) |> 
-  pull(locus_family)
-
-all_wt_sig_flat |> 
-  filter(locus_family %in% unique_locus_fam) |> 
-  dplyr::count(species) |> 
-  left_join(total_genes_each_species, join_by(species), suffix = c("_unique", "_total")) |> 
-  mutate("percent of genes that are species-specific" = round(100*n_unique/n_total,1),
-         )
-
-
-
-```
-### Experimental: Calculate the number of genes in each grouping, and also calculate the percentages
-```{r}
 locus_fam_num_genomes <- all_wt_sig_flat |> 
   dplyr::count(locus_family) |> 
   mutate(num_genomes_with_locus_fam = n)
