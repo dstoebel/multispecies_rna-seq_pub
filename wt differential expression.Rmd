@@ -100,14 +100,16 @@ total_genes_plot
 ### What are the locus_tag for each locus_family
 
 ```{r}
-geneinfo_with_locus_fam_no_dups |>
+locus_tags_per_family <- geneinfo_with_locus_fam_no_dups |>
   ungroup() |> 
   dplyr::select(locus_family, species, locus_tag) |> 
   mutate(species = format_species_names(species)) |> 
   pivot_wider(names_from = species, values_from = locus_tag) |> 
   rowwise() |> 
   mutate(num_genomes = sum(!is.na(c_across(2:7)))) |> 
-  ungroup() |> 
+  ungroup()
+  
+ locus_tags_per_family |>  
   arrange(desc(num_genomes)) |> 
   write_tsv("outputs/locus_tag_per_locus_family.tsv")
 
