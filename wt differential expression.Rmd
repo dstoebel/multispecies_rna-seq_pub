@@ -114,6 +114,18 @@ locus_tags_per_family <- all_wt_sig_flat |>
 
 ```
 
+### What are the core locus families? 
+This is needed later on
+
+```{r}
+core_locus_families <- all_wt_sig_flat |> 
+  dplyr::count(locus_family) |> 
+  filter(n == 6) |> 
+  pull(locus_family)
+```
+
+
+
 ### Calculate the number of genes in each grouping, and also calculate the percentages
 ```{r}
 
