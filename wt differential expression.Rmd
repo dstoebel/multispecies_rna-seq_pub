@@ -480,14 +480,15 @@ ggsave("outputs/fig2_PCA_up_and_down_DE.tiff", width = 12, height = 15, compress
 ### How many genes are DE in the same direction in all six species, and what are they?
 
 ```{r}
-all_up_locus_fams <- all_wt_sig_flat |> 
+all_up_locus_fams <-  all_wt_sig_flat |> 
   mutate(sig_up = case_when(significant & (log2FoldChange > 0) ~ TRUE,
                             TRUE ~ FALSE)) |> 
   group_by(locus_family) |> 
   summarise(num_up = sum(sig_up)) |> 
   filter(num_up == 6) |> 
-  left_join(locus_fam_ecoli_names)
-
+  left_join(filter(all_wt_sig_flat, species == "E_coli_K12"))|> 
+   dplyr::select(locus_family, `E. coli locus tag` = locus_tag, gene) |> 
+  mutate(direction_of_regulation = "up")
 
 
 all_down_locus_fams <- all_wt_sig_flat |> 
@@ -496,11 +497,13 @@ all_down_locus_fams <- all_wt_sig_flat |>
   group_by(locus_family) |> 
   summarise(num_down = sum(sig_down)) |> 
   filter(num_down == 6) |> 
-  left_join(locus_fam_ecoli_names)
+  left_join(filter(all_wt_sig_flat, species == "E_coli_K12"))|> 
+   dplyr::select(locus_family, `E. coli locus tag` = locus_tag, gene) |> 
+  mutate(direction_of_regulation = "down")
 
-all_up_locus_fams
-all_down_locus_fams
 
+bind_rows(all_up_locus_fams,all_down_locus_fams) |> 
+  write_tsv("outputs/genes_DE_in_6_species.tsv")
 ```
 
 
