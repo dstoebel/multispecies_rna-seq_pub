@@ -89,7 +89,7 @@ pca <-  pcaData |>
   #   legend.title.position = "top"))) +
   #theme_classic() +
   theme(legend.text = element_text(face = "italic"),
-        legend.position = "top",
+        legend.position = "bottom",
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14)) 
 
@@ -161,7 +161,7 @@ delRpoS_overlap_plot <- tibble(species, status_other_species, n) |>
        y = "Number of genes",
        fill = "Status in the\nother species") +
   theme(axis.text.y = element_text(face = "italic"),
-        legend.position = "top",
+        legend.position = "bottom",
         axis.text = element_text(size = 12),
         axis.title = element_text(size = 14)) +
   coord_flip()
