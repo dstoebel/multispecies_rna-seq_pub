@@ -131,7 +131,7 @@ core_locus_families <- all_wt_sig_flat |>
 
 locus_fam_num_genomes <- all_wt_sig_flat |> 
   dplyr::count(locus_family) |> 
-  mutate(num_genomes_with_locus_fam = n)
+  dplyr::rename(num_genomes_with_locus_fam = n)
 
 gene_sharing_each_genome <- all_wt_sig_flat |> 
   left_join(locus_fam_num_genomes, join_by(locus_family)) |> 
