@@ -1,5 +1,13 @@
 # multispecies_rna-seq
 
+###This repository includes data and code to accompany:
+
+###"The transcriptional response to low temperature is weakly conserved across the Enterobacteriaceae" by Hoang and Stoebel
+
+###Now published in mSystems
+
+###[https://doi.org/10.1128/msystems.00785-24]
+
 ## Outputs
 
 The directory `outputs` includes:
